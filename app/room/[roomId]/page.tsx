@@ -37,7 +37,7 @@ export default function RoomPage() {
   const [showMobileLobby, setShowMobileLobby] = useState(false)
   // Delay auto-open so socket is fully ready before team:select
   const [autoPickReady, setAutoPickReady] = useState(false)
-  const autoPickTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const autoPickTimer = useRef<number | null>(null)
 
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:5175'
   const playersIndex = usePlayersIndex(serverUrl)
