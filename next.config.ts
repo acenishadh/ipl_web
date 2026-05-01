@@ -7,10 +7,15 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
   webpack: (config, { isServer }) => {
-    if (isServer) {
-      // Workaround for intermittent Windows locks on `.next/trace`.
-      // Disabling the tracing plugin keeps local builds reliable.
-      config.plugins = (config.plugins ?? []).filter((p: any) => p?.constructor?.name !== 'TraceEntryPointsPlugin')
+    // Workaround for intermittent Windows locks on `.next/trace` during local builds.
+    // IMPORTANT: do not apply this in production builds (e.g. Vercel), as it can
+    // break Next.js server/app build artifacts (e.g. client reference manifests).
+    const isWindows = process.platform === 'win32'
+    const isProd = process.env.NODE_ENV === 'production'
+    if (isServer && isWindows && !isProd) {
+      config.plugins = (config.plugins ?? []).filter(
+        (p: any) => p?.constructor?.name !== 'TraceEntryPointsPlugin'
+      )
     }
     return config
   }
