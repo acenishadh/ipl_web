@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+html,
+body {
+  height: 100%;
+}
+
+:root {
+  --neon-cyan: #00d4ff;
+  --neon-pink: #ff006e;
+  --neon-purple: #a855f7;
+  --neon-green: #00ff9d;
+  --neon-yellow: #ffd60a;
+  --neon-orange: #ff6b35;
+  --bg-base: #06060f;
+  --bg-card: rgba(12, 12, 28, 0.92);
+  --border-subtle: rgba(255, 255, 255, 0.07);
+}
+
+body {
+  font-family: var(--font-inter, system-ui, sans-serif);
+  background:
+    radial-gradient(ellipse 80% 55% at 10% -5%, rgba(0, 212, 255, 0.06) 0%, rgba(0, 212, 255, 0) 70%),
+    radial-gradient(ellipse 70% 60% at 90% 95%, rgba(168, 85, 247, 0.06) 0%, rgba(168, 85, 247, 0) 70%),
+    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(255, 0, 110, 0.03) 0%, rgba(255, 0, 110, 0) 70%),
+    #06060f;
+  color: #eeeef8;
+}
+
+/* ── Neon scrollbar ─────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.25); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.5); }
+
+/* ── Keyframe animations ────────────────────────── */
+@keyframes confetti {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(85vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes sold-pop {
+  0% { transform: scale(0.88) translateY(12px); opacity: 0; }
+  60% { transform: scale(1.04); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes neon-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 212, 255, 0.4), 0 0 20px rgba(0, 212, 255, 0.15); }
+  50% { box-shadow: 0 0 16px rgba(0, 212, 255, 0.7), 0 0 36px rgba(0, 212, 255, 0.25); }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes timer-warn {
+  0%, 100% { color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.8); }
+  50% { color: #fca5a5; text-shadow: 0 0 20px rgba(239, 68, 68, 1); }
+}
+
+/* ── Rajdhani for display headings ──────────────── */
+h1, h2, .font-display {
+  font-family: var(--font-rajdhani, var(--font-inter, system-ui, sans-serif));
+  letter-spacing: 0.02em;
+}
+
+/* ── CSS-only hover glow cards (works in Server Components) ── */
+.neon-card-cyan {
+  border-color: rgba(0, 212, 255, 0.2);
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.06) 0%, rgba(0, 136, 200, 0.03) 100%);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+.neon-card-cyan:hover {
+  border-color: rgba(0, 212, 255, 0.45);
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.14), 0 8px 32px rgba(0, 0, 0, 0.45);
+  transform: translateY(-3px);
+}
+
+.neon-card-purple {
+  border-color: rgba(168, 85, 247, 0.2);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.06) 0%, rgba(109, 40, 217, 0.03) 100%);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+.neon-card-purple:hover {
+  border-color: rgba(168, 85, 247, 0.45);
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.14), 0 8px 32px rgba(0, 0, 0, 0.45);
+  transform: translateY(-3px);
+}
+
+.neon-card-pink {
+  border-color: rgba(255, 0, 110, 0.2);
+  background: linear-gradient(135deg, rgba(255, 0, 110, 0.06) 0%, rgba(200, 0, 80, 0.03) 100%);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+.neon-card-pink:hover {
+  border-color: rgba(255, 0, 110, 0.45);
+  box-shadow: 0 0 30px rgba(255, 0, 110, 0.14), 0 8px 32px rgba(0, 0, 0, 0.45);
+  transform: translateY(-3px);
+}
+
+.neon-card-rose {
+  border-color: rgba(244, 63, 94, 0.2);
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.07) 0%, rgba(200, 0, 60, 0.03) 100%);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+.neon-card-rose:hover {
+  border-color: rgba(244, 63, 94, 0.45);
+  box-shadow: 0 0 30px rgba(244, 63, 94, 0.14), 0 8px 32px rgba(0, 0, 0, 0.45);
+  transform: translateY(-3px);
+}
+
+.neon-card-orange {
+  border-color: rgba(249, 115, 22, 0.2);
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.07) 0%, rgba(194, 65, 12, 0.03) 100%);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+.neon-card-orange:hover {
+  border-color: rgba(249, 115, 22, 0.45);
+  box-shadow: 0 0 30px rgba(249, 115, 22, 0.14), 0 8px 32px rgba(0, 0, 0, 0.45);
+  transform: translateY(-3px);
+}
+
+/* ── Glass card base ────────────────────────────── */
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ── Progress bar shimmer ───────────────────────── */
+@keyframes progress-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-bar {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 212, 255, 0.7) 0%,
+    rgba(0, 212, 255, 1) 40%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(0, 212, 255, 1) 60%,
+    rgba(0, 212, 255, 0.7) 100%
+  );
+  background-size: 200% 100%;
+  animation: progress-shimmer 2s linear infinite;
+}
+
+/* ── Mobile landscape: reduce main padding so content breathes ── */
+@media (orientation: landscape) and (max-height: 600px) {
+  main.landscape-main {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+}
+
+/* ── Landscape touch target helpers ─────────────────────────── */
+@media (pointer: coarse) {
+  /* Ensure tap targets are at least 44px tall */
+  button {
+    min-height: 36px;
+  }
+}
