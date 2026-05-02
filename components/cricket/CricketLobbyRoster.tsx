@@ -2,9 +2,15 @@
 
 import { teamColor, teamLogo } from '@/components/teamMeta'
 
-export function CricketLobbyRoster(props: { room: any | null; mySessionId: string | null }) {
+export function CricketLobbyRoster(props: {
+  room: any | null
+  mySessionId: string | null
+  /** Host-only: kick removes the player and assigns a bot to their franchise when applicable. */
+  onKickPlayer?: (targetSessionId: string) => void
+}) {
   const participants: any[] = props.room?.participants ?? []
   const hostSessionId: string | null = props.room?.hostSessionId ?? null
+  const viewerIsHost = !!(hostSessionId && props.mySessionId && hostSessionId === props.mySessionId)
 
   return (
     <div
@@ -16,7 +22,7 @@ export function CricketLobbyRoster(props: { room: any | null; mySessionId: strin
       }}
     >
       <div className="flex items-center justify-between">
-        <h3 className="font-display text-base font-bold text-white">Lobby</h3>
+        <h3 className="font-display text-base font-bold text-white">Players</h3>
         <div
           className="rounded-full px-2.5 py-0.5 text-xs font-bold"
           style={{ background: 'rgba(244,63,94,0.12)', color: '#fb7185' }}
@@ -30,6 +36,12 @@ export function CricketLobbyRoster(props: { room: any | null; mySessionId: strin
           const isMe = !!(props.mySessionId && p.sessionId === props.mySessionId)
           const isHost = !!(hostSessionId && p.sessionId === hostSessionId)
           const isBot = p.sessionId?.startsWith('bot_')
+          const showKick =
+            viewerIsHost &&
+            props.onKickPlayer &&
+            !isBot &&
+            !isHost &&
+            p.sessionId !== props.mySessionId
           const color = teamColor(p.teamId)
           const logo = teamLogo(p.teamId)
 
@@ -71,10 +83,22 @@ export function CricketLobbyRoster(props: { room: any | null; mySessionId: strin
                   )}
                 </div>
               </div>
-              <div
-                className="h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ background: isBot ? 'rgba(99,102,241,0.6)' : p.connected ? '#00ff9d' : '#ef4444' }}
-              />
+              <div className="flex shrink-0 items-center gap-1.5">
+                {showKick && (
+                  <button
+                    type="button"
+                    onClick={() => props.onKickPlayer?.(p.sessionId)}
+                    className="rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-colors hover:bg-white/10"
+                    style={{ color: '#fb7185', border: '1px solid rgba(251,113,133,0.35)' }}
+                  >
+                    Kick
+                  </button>
+                )}
+                <div
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ background: isBot ? 'rgba(99,102,241,0.6)' : p.connected ? '#00ff9d' : '#ef4444' }}
+                />
+              </div>
             </div>
           )
         })}

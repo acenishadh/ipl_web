@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, useRef } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { createSocket, getLocalSessionId } from '@/lib/socket'
 import { TeamPickerModal } from '@/components/TeamPickerModal'
 import { CricketRoomHeader } from '@/components/cricket/CricketRoomHeader'
@@ -13,6 +13,9 @@ import { CricketMatchSummary } from '@/components/cricket/CricketMatchSummary'
 import { CricketSchedule } from '@/components/cricket/CricketSchedule'
 import { CricketPlayoffs } from '@/components/cricket/CricketPlayoffs'
 import { CricketScorecard } from '@/components/cricket/CricketScorecard'
+import { CricketInningsBreakOverlay, CricketTossResultOverlay } from '@/components/cricket/CricketPhaseOverlays'
+import { CricketCapLeaderboards } from '@/components/cricket/CricketCapLeaderboards'
+import { CricketTournamentVictory } from '@/components/cricket/CricketTournamentVictory'
 import { teamColor, teamLogo } from '@/components/teamMeta'
 
 type CricketSnapshot = any
@@ -33,6 +36,7 @@ export default function CricketRoomPage() {
   const urlRoomId = params.roomId
   const code = search.get('code')
   const pickTeam = search.get('pickTeam') === '1'
+  const router = useRouter()
 
   const socket = useMemo(() => createSocket(), [])
   const [snap, setSnap] = useState<CricketSnapshot | null>(null)
@@ -50,6 +54,19 @@ export default function CricketRoomPage() {
   const autoPickTimer = useRef<number | null>(null)
 
   const mySessionId = getLocalSessionId()
+  const iAmHost = snap?.room?.hostSessionId === mySessionId
+  const onKickPlayer = useMemo(
+    () =>
+      iAmHost
+        ? (targetSessionId: string) => {
+            setError(null)
+            socket.emit('cricket:room:kick', { roomId: effectiveRoomId, targetSessionId }, (res: { ok: boolean; error?: { message: string } }) => {
+              if (!res.ok) setError(res.error?.message ?? 'Could not remove player.')
+            })
+          }
+        : undefined,
+    [iAmHost, socket, effectiveRoomId]
+  )
   const me = snap?.room?.participants?.find((p: any) => p.sessionId === mySessionId) ?? null
   const myTeamId: string | null = me?.teamId ?? null
   const shouldPickTeam = !!me && me.role === 'PLAYER' && !me.teamId
@@ -83,6 +100,22 @@ export default function CricketRoomPage() {
     socket.on('cricket:snapshot', setSnap)
     return () => { socket.disconnect() }
   }, [socket])
+
+  useEffect(() => {
+    const onKicked = (p: { roomId: string }) => {
+      if (p.roomId !== effectiveRoomId) return
+      setError('You were removed from the room by the host.')
+      try {
+        window.sessionStorage.removeItem('ipl_lastCricketRoomCode')
+        window.sessionStorage.removeItem('ipl_lastCricketRoomId')
+      } catch {
+        /* ignore */
+      }
+      router.push('/cricket/join')
+    }
+    socket.on('cricket:kicked', onKicked)
+    return () => { socket.off('cricket:kicked', onKicked) }
+  }, [socket, effectiveRoomId, router])
 
   useEffect(() => {
     try {
@@ -204,9 +237,8 @@ export default function CricketRoomPage() {
 
       {/* ── SCORE BAR ── */}
       {(() => {
-        const currentInn = match?.innings?.length > 0
-          ? { ...match.innings[match.innings.length - 1], status: match.status }
-          : null
+        const currentInn =
+          match?.innings?.length > 0 ? { ...match.innings[match.innings.length - 1], status: match.status } : null
         return (
           <div className="mt-2">
             <CricketTopBar
@@ -222,6 +254,10 @@ export default function CricketRoomPage() {
                   : `${snap?.room?.oversPerMatch ?? 5} overs`)
               }
               innings={currentInn}
+              matchStatus={match?.status ?? null}
+              target={match?.target ?? null}
+              oversPerMatch={snap?.room?.oversPerMatch ?? 5}
+              currentOverBalls={currentInn?.currentOverBalls ?? []}
             />
           </div>
         )
@@ -279,6 +315,9 @@ export default function CricketRoomPage() {
               roomStatus={roomStatus}
               commentary={snap?.commentary ?? []}
               oversPerMatch={snap?.room?.oversPerMatch ?? 5}
+              onPhaseAck={(phase) => {
+                socket.emit('cricket:phase:ack', { roomId: effectiveRoomId, phase }, () => {})
+              }}
               onTossCall={(call) => socket.emit('cricket:toss:call', { roomId: effectiveRoomId, call }, () => {})}
               onTossDecide={(dec) => socket.emit('cricket:toss:decide', { roomId: effectiveRoomId, decision: dec }, () => {})}
               onPick={(value) => {
@@ -313,7 +352,7 @@ export default function CricketRoomPage() {
 
         {/* Right sidebar: Lobby (always visible on sm+) */}
         <div className="hidden sm:sticky sm:top-4 sm:block">
-          <CricketLobbyRoster room={snap?.room ?? null} mySessionId={mySessionId} />
+          <CricketLobbyRoster room={snap?.room ?? null} mySessionId={mySessionId} onKickPlayer={onKickPlayer} />
         </div>
       </div>
 
@@ -327,7 +366,9 @@ export default function CricketRoomPage() {
           <span>👥 Players · {snap?.room?.participants?.length ?? 0}</span>
           <span className="opacity-60">{showMobileLobby ? '▲' : '▼'}</span>
         </button>
-        {showMobileLobby && <CricketLobbyRoster room={snap?.room ?? null} mySessionId={mySessionId} />}
+        {showMobileLobby && (
+          <CricketLobbyRoster room={snap?.room ?? null} mySessionId={mySessionId} onKickPlayer={onKickPlayer} />
+        )}
       </div>
     </main>
   )
@@ -385,6 +426,11 @@ function DashboardTab({ league, match, inPlayoffs }: { league: any; match: any; 
     <div className="space-y-3">
       {/* Points table */}
       <PointsTableCard league={league} />
+
+      <div>
+        <h3 className="mb-2 font-display text-sm font-bold text-white/80">Tournament caps</h3>
+        <CricketCapLeaderboards league={league} />
+      </div>
 
       {/* Playoffs bracket */}
       {(inPlayoffs || (league?.playoffs?.length ?? 0) > 0) && (
@@ -483,11 +529,12 @@ function PointsTableCard({ league }: { league: any }) {
 
 function MatchTab({
   match, league, myTeamId, isTournament, roomStatus, commentary, oversPerMatch,
-  onTossCall, onTossDecide, onPick, onSelectBowler, onSelectBatter, onProceed
+  onPhaseAck, onTossCall, onTossDecide, onPick, onSelectBowler, onSelectBatter, onProceed
 }: {
   match: any; league: any; myTeamId: string | null
   isTournament: boolean; roomStatus: string | null
   commentary: any[]; oversPerMatch: number
+  onPhaseAck: (phase: 'toss' | 'inningsBreak') => void
   onTossCall: (c: 'HEADS' | 'TAILS') => void
   onTossDecide: (d: 'BAT' | 'BOWL') => void
   onPick: (v: number) => void
@@ -495,6 +542,10 @@ function MatchTab({
   onSelectBatter: (batterIndex: number) => void
   onProceed: () => void
 }) {
+  if (roomStatus === 'FINISHED' && !match && isTournament && league?.championTeamId) {
+    return <CricketTournamentVictory league={league} />
+  }
+
   if (roomStatus === 'FINISHED' && !match) {
     return (
       <div
@@ -548,6 +599,14 @@ function MatchTab({
     )
   }
 
+  if (match.status === 'INNINGS1' && match.toss?.decision && !match.tossAcknowledged) {
+    return <CricketTossResultOverlay match={match} onContinue={() => onPhaseAck('toss')} />
+  }
+
+  if (match.status === 'INNINGS2' && !match.inningsBreakAcknowledged) {
+    return <CricketInningsBreakOverlay match={match} onContinue={() => onPhaseAck('inningsBreak')} />
+  }
+
   if (match.status === 'COMPLETE') {
     return (
       <CricketMatchSummary
@@ -566,6 +625,7 @@ function MatchTab({
       myTeamId={myTeamId}
       commentary={commentary}
       oversPerMatch={oversPerMatch}
+      pickSeq={match?.pickSeq ?? 0}
       onPick={onPick}
       onSelectBowler={onSelectBowler}
       onSelectBatter={onSelectBatter}

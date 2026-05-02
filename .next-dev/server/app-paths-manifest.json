@@ -1,0 +1,7 @@
+{
+  "/cricket/page": "app/cricket/page.js",
+  "/cricket/create/page": "app/cricket/create/page.js",
+  "/cricket/room/[roomId]/page": "app/cricket/room/[roomId]/page.js",
+  "/page": "app/page.js",
+  "/cricket/join/page": "app/cricket/join/page.js"
+}

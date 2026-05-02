@@ -11,10 +11,10 @@ function BatterSelectPanel(props: {
   const batters: any[] = inn.batters ?? []
   const btColor = teamColor(inn.battingTeamId)
 
-  // Available = not out, not the current non-striker, not the current (just-dismissed) striker
+  // Not out and not at non-striker (new striker replaces dismissed index; isOut clears old row)
   const available = batters
     .map((b: any, i: number) => ({ ...b, index: i }))
-    .filter((b) => !b.isOut && b.index !== inn.nonStrikerIndex && b.index !== inn.strikerIndex)
+    .filter((b) => !b.isOut && b.index !== inn.nonStrikerIndex)
 
   const nonStriker = batters[inn.nonStrikerIndex]
 
@@ -160,10 +160,13 @@ export function CricketMatchView(props: {
   onSelectBowler: (name: string) => void
   onSelectBatter: (batterIndex: number) => void
   oversPerMatch: number
+  /** Server bumps this when a new ball / over begins — clears stale pick UI. */
+  pickSeq?: number
   commentary?: { ts: number; text: string; kind: string }[]
 }) {
   const match = props.match
-  const inn = match?.innings?.[match.status === 'INNINGS2' ? 1 : 0] ?? match?.innings?.[match.innings.length - 1]
+  /** Active innings is always the last entry (1st or 2nd). */
+  const inn = match?.innings?.length ? match.innings[match.innings.length - 1] : null
   const pending = match?.pendingBall ?? null
   const commentary = props.commentary ?? []
   const maxOversPerBowler = Math.ceil(props.oversPerMatch / 5)
@@ -178,7 +181,8 @@ export function CricketMatchView(props: {
   const oversStr = inn ? `${Math.floor(inn.balls / 6)}.${inn.balls % 6}` : '0.0'
   const scoreStr = inn ? `${inn.runs}/${inn.wickets} (${oversStr})` : '0/0'
 
-  const strikerName = inn?.batters?.[inn.strikerIndex]?.name ?? null
+  const strikerRow = inn?.batters?.[inn.strikerIndex]
+  const strikerName = strikerRow && !strikerRow.isOut ? strikerRow.name : null
   const nonStrikerName = inn?.batters?.[inn.nonStrikerIndex]?.name ?? null
   const bowlerName = inn?.currentBowlerName ?? null
 
@@ -210,6 +214,7 @@ export function CricketMatchView(props: {
 
       {/* ── ACTION PANEL ── */}
       <div
+        key={`ball-${props.pickSeq ?? 0}-${pending?.battingPick ?? 'x'}-${pending?.bowlingPick ?? 'x'}`}
         className="rounded-2xl border p-3 sm:rounded-3xl sm:p-5"
         style={{
           background: 'rgba(10,10,24,0.95)',
