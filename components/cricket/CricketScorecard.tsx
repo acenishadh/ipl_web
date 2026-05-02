@@ -80,6 +80,22 @@ function InningsCard({ inn, isLive }: { inn: any; isLive: boolean }) {
       <div className="p-3 sm:p-4">
         {activeView === 'batting' ? (
           <>
+            <div
+              className="mb-3 rounded-xl border px-3 py-2.5"
+              style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}
+            >
+              <div className="text-[10px] font-bold uppercase tracking-wider text-white/40">Extras</div>
+              <div className="mt-1 flex flex-wrap gap-x-6 gap-y-1 text-xs">
+                <span className="text-white/70">
+                  Wide runs{' '}
+                  <span className="font-mono font-bold tabular-nums text-sky-300">{inn.extrasWideRuns ?? 0}</span>
+                </span>
+                <span className="text-white/70">
+                  No-ball runs{' '}
+                  <span className="font-mono font-bold tabular-nums text-amber-300">{inn.extrasNoBallRuns ?? 0}</span>
+                </span>
+              </div>
+            </div>
             {/* Batting table */}
             <div className="overflow-x-auto">
               <table className="w-full min-w-[420px] text-xs">

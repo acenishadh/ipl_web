@@ -17,6 +17,7 @@ import { CricketInningsBreakOverlay, CricketTossResultOverlay } from '@/componen
 import { CricketCapLeaderboards } from '@/components/cricket/CricketCapLeaderboards'
 import { CricketTournamentVictory } from '@/components/cricket/CricketTournamentVictory'
 import { teamColor, teamLogo } from '@/components/teamMeta'
+import { reactToCricketCommentary } from '@/lib/cricketMoments'
 
 type CricketSnapshot = any
 type BallPopup = { text: string; kind: string } | null
@@ -137,12 +138,13 @@ export default function CricketRoomPage() {
     if (typeof rid === 'string' && rid && rid !== effectiveRoomId) setEffectiveRoomId(rid)
   }, [snap?.room?.roomId, effectiveRoomId])
 
-  // Ball popup
+  // Ball popup + haptics / confetti on new commentary
   useEffect(() => {
     const commentary: any[] = snap?.commentary ?? []
     if (commentary.length > prevCommentaryLen.current && commentary.length > 0) {
       const latest = commentary[commentary.length - 1]
       if (latest) {
+        reactToCricketCommentary({ kind: String(latest.kind ?? 'INFO'), text: String(latest.text ?? '') })
         setBallPopup({ text: latest.text, kind: latest.kind })
         if (popupTimer.current) window.clearTimeout(popupTimer.current)
         popupTimer.current = window.setTimeout(() => setBallPopup(null), 2800) as unknown as number

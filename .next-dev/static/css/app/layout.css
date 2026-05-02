@@ -46,6 +46,7 @@
     --color-cyan-400: oklch(78.9% 0.154 211.53);
     --color-cyan-500: oklch(71.5% 0.143 215.221);
     --color-cyan-600: oklch(60.9% 0.126 221.723);
+    --color-sky-300: oklch(82.8% 0.111 230.318);
     --color-sky-500: oklch(68.5% 0.169 237.323);
     --color-sky-600: oklch(58.8% 0.158 241.966);
     --color-blue-100: oklch(93.2% 0.032 255.585);
@@ -686,6 +687,9 @@
   .max-w-6xl {
     max-width: var(--container-6xl);
   }
+  .max-w-\[2\.8rem\] {
+    max-width: 2.8rem;
+  }
   .max-w-lg {
     max-width: var(--container-lg);
   }
@@ -703,6 +707,9 @@
   }
   .min-w-0 {
     min-width: calc(var(--spacing) * 0);
+  }
+  .min-w-7 {
+    min-width: calc(var(--spacing) * 7);
   }
   .min-w-\[260px\] {
     min-width: 260px;
@@ -860,6 +867,9 @@
   }
   .gap-x-4 {
     column-gap: calc(var(--spacing) * 4);
+  }
+  .gap-x-6 {
+    column-gap: calc(var(--spacing) * 6);
   }
   .gap-y-1 {
     row-gap: calc(var(--spacing) * 1);
@@ -1553,6 +1563,9 @@
   .text-red-400 {
     color: var(--color-red-400);
   }
+  .text-sky-300 {
+    color: var(--color-sky-300);
+  }
   .text-white {
     color: var(--color-white);
   }
@@ -1910,6 +1923,11 @@
       margin-top: calc(var(--spacing) * 5);
     }
   }
+  .sm\:mr-2 {
+    @media (width >= 40rem) {
+      margin-right: calc(var(--spacing) * 2);
+    }
+  }
   .sm\:block {
     @media (width >= 40rem) {
       display: block;
@@ -1990,11 +2008,6 @@
       width: calc(var(--spacing) * 7);
     }
   }
-  .sm\:w-8 {
-    @media (width >= 40rem) {
-      width: calc(var(--spacing) * 8);
-    }
-  }
   .sm\:w-9 {
     @media (width >= 40rem) {
       width: calc(var(--spacing) * 9);
@@ -2018,6 +2031,21 @@
   .sm\:w-20 {
     @media (width >= 40rem) {
       width: calc(var(--spacing) * 20);
+    }
+  }
+  .sm\:w-auto {
+    @media (width >= 40rem) {
+      width: auto;
+    }
+  }
+  .sm\:max-w-\[3\.2rem\] {
+    @media (width >= 40rem) {
+      max-width: 3.2rem;
+    }
+  }
+  .sm\:min-w-8 {
+    @media (width >= 40rem) {
+      min-width: calc(var(--spacing) * 8);
     }
   }
   .sm\:grid-cols-2 {

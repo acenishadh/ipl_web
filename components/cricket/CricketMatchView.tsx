@@ -272,6 +272,11 @@ export function CricketMatchView(props: {
           {inn?.awaitingBowlerSelect && !awaitingBowler && !inn?.awaitingBatterSelect && (
             <div className="text-xs text-white/40">⏳ Waiting for bowler selection…</div>
           )}
+          {inn?.freeHitNext && !awaitingBowler && !awaitingBatter && (
+            <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#e9d5ff' }}>
+              Free hit — dismissal off same pick is disabled
+            </div>
+          )}
         </div>
 
         {/* Pick grids */}
