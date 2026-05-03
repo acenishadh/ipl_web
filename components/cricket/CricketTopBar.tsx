@@ -184,7 +184,7 @@ export function CricketTopBar(props: {
           className="border-t px-4 py-1.5 text-center text-[10px] font-bold sm:px-6"
           style={{ borderColor: 'rgba(168,85,247,0.25)', background: 'rgba(168,85,247,0.08)', color: '#e9d5ff' }}
         >
-          FREE HIT — same pick can’t get you out
+          FREE HIT — matching picks can’t dismiss you (no ball & free hit)
         </div>
       )}
 

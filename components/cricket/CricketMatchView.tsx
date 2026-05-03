@@ -3,6 +3,12 @@
 import { teamColor, teamLogo } from '@/components/teamMeta'
 import { BAT_ACTIONS, BOWL_ACTIONS } from './actionsMeta'
 
+function playerInitials(name: string) {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) return (parts[0]![0] + parts[parts.length - 1]![0]).toUpperCase()
+  return name.slice(0, 2).toUpperCase()
+}
+
 function BatterSelectPanel(props: {
   inn: any
   onSelectBatter: (batterIndex: number) => void
@@ -11,7 +17,6 @@ function BatterSelectPanel(props: {
   const batters: any[] = inn.batters ?? []
   const btColor = teamColor(inn.battingTeamId)
 
-  // Not out and not at non-striker (new striker replaces dismissed index; isOut clears old row)
   const available = batters
     .map((b: any, i: number) => ({ ...b, index: i }))
     .filter((b) => !b.isOut && b.index !== inn.nonStrikerIndex)
@@ -20,46 +25,117 @@ function BatterSelectPanel(props: {
 
   return (
     <div
-      className="rounded-2xl border p-4 sm:rounded-3xl sm:p-5"
+      className="relative overflow-hidden rounded-2xl border sm:rounded-3xl"
       style={{
-        background: 'rgba(10,10,24,0.97)',
-        borderColor: `${btColor}40`,
-        boxShadow: `0 0 30px ${btColor}10`,
+        background: 'linear-gradient(165deg, rgba(10,10,24,0.98) 0%, rgba(18,18,40,0.96) 100%)',
+        borderColor: `${btColor}55`,
+        boxShadow: `0 0 40px ${btColor}18, inset 0 1px 0 rgba(255,255,255,0.06)`,
       }}
     >
-      <div className="flex items-center gap-3">
-        <div
-          className="flex h-9 w-9 items-center justify-center rounded-xl border"
-          style={{ background: `${btColor}15`, borderColor: `${btColor}35` }}
-        >
-          <span className="text-lg">🏏</span>
-        </div>
-        <div>
-          <div className="font-display text-sm font-bold text-white">Send Next Batsman</div>
-          <div className="text-xs text-white/40">
-            {inn.battingTeamId} · {inn.wickets} wicket{inn.wickets !== 1 ? 's' : ''} down
-            {nonStriker && <span> · {nonStriker.name} at non-striker end</span>}
+      <div
+        className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full blur-3xl opacity-40"
+        style={{ background: btColor }}
+      />
+      <div className="relative p-4 sm:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-2xl shadow-lg"
+              style={{
+                background: `linear-gradient(145deg, ${btColor}35, ${btColor}12)`,
+                borderColor: `${btColor}50`,
+                boxShadow: `0 8px 24px ${btColor}22`,
+              }}
+            >
+              🏏
+            </div>
+            <div>
+              <div
+                className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                style={{ borderColor: `${btColor}40`, color: btColor, background: `${btColor}12` }}
+              >
+                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full" style={{ background: btColor }} />
+                Crease call
+              </div>
+              <div className="font-display mt-1 text-base font-bold tracking-tight text-white sm:text-lg">
+                Who walks out next?
+              </div>
+              <div className="mt-0.5 max-w-md text-xs leading-snug text-white/45">
+                {inn.battingTeamId} · {inn.wickets} down
+                {nonStriker && (
+                  <span>
+                    {' '}
+                    · <span className="text-white/60">{nonStriker.name.split(' ').pop()}</span> waiting at the other end
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-2">
-        {available.map((b) => (
-          <button
-            key={b.index}
-            onClick={() => props.onSelectBatter(b.index)}
-            className="flex items-center justify-between rounded-xl border px-3 py-2.5 text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
-            style={{ background: `${btColor}0a`, borderColor: `${btColor}30` }}
-          >
-            <span className="font-semibold text-white">{b.name}</span>
-            <span className="text-[10px] text-white/35">
-              {b.balls === 0 ? 'YTB' : `${b.runs} (${b.balls}b)`}
-            </span>
-          </button>
-        ))}
-        {available.length === 0 && (
-          <p className="col-span-2 text-xs text-white/30">No batsmen available — innings ending…</p>
-        )}
+        <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
+          {available.map((b) => {
+            const hot = b.balls > 0 && b.runs / b.balls >= 1.5
+            return (
+              <button
+                key={b.index}
+                type="button"
+                onClick={() => props.onSelectBatter(b.index)}
+                className="group flex items-center gap-3 rounded-2xl border px-3 py-3 text-left transition-all active:scale-[0.99] sm:px-4"
+                style={{
+                  background: `linear-gradient(90deg, ${btColor}14 0%, rgba(255,255,255,0.02) 100%)`,
+                  borderColor: `${btColor}35`,
+                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.05)`,
+                }}
+              >
+                <div
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-extrabold tracking-tight transition-transform group-hover:scale-105"
+                  style={{
+                    background: `linear-gradient(135deg, ${btColor}45, ${btColor}20)`,
+                    color: '#fff',
+                    boxShadow: `0 4px 14px ${btColor}35`,
+                  }}
+                >
+                  {playerInitials(b.name)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-display font-semibold text-white">{b.name}</div>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-white/40">
+                    {b.balls === 0 ? (
+                      <span className="rounded-md bg-white/5 px-1.5 py-0.5 font-semibold text-amber-200/90">
+                        Fresh at the crease
+                      </span>
+                    ) : (
+                      <>
+                        <span className="font-mono tabular-nums text-white/55">
+                          {b.runs}<span className="text-white/35"> ({b.balls}b)</span>
+                        </span>
+                        {b.fours > 0 && (
+                          <span className="rounded bg-sky-500/15 px-1 py-px font-bold text-sky-300">▢ {b.fours}</span>
+                        )}
+                        {b.sixes > 0 && (
+                          <span className="rounded bg-violet-500/15 px-1 py-px font-bold text-violet-300">⬡ {b.sixes}</span>
+                        )}
+                        {hot && <span className="text-amber-300/90">· on fire</span>}
+                      </>
+                    )}
+                  </div>
+                </div>
+                <span
+                  className="shrink-0 text-lg text-white/20 transition group-hover:text-white/50"
+                  aria-hidden
+                >
+                  →
+                </span>
+              </button>
+            )
+          })}
+          {available.length === 0 && (
+            <p className="col-span-2 rounded-xl border border-dashed border-white/10 bg-white/[0.02] py-6 text-center text-sm text-white/35">
+              No batsmen left in the hut — wrapping the innings…
+            </p>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -76,66 +152,145 @@ function BowlerSelectPanel(props: {
   const prev = inn.prevBowlerName
   const bwColor = teamColor(inn.bowlingTeamId)
 
-  function overs(name: string) {
+  function oversBowled(name: string) {
     const rec = bowlers.find((b: any) => b.name === name)
     return rec ? Math.floor(rec.balls / 6) : 0
   }
 
-  const eligible = pool.filter((n) => n !== prev && overs(n) < props.maxOversPerBowler)
-  const maxedOut = pool.filter((n) => n !== prev && overs(n) >= props.maxOversPerBowler)
+  function spellStats(name: string) {
+    const rec = bowlers.find((b: any) => b.name === name)
+    if (!rec) return null
+    return { wk: rec.wickets, runs: rec.runs, balls: rec.balls }
+  }
+
+  const eligible = pool.filter((n) => n !== prev && oversBowled(n) < props.maxOversPerBowler)
+  const maxedOut = pool.filter((n) => n !== prev && oversBowled(n) >= props.maxOversPerBowler)
 
   return (
     <div
-      className="rounded-2xl border p-4 sm:rounded-3xl sm:p-5"
+      className="relative overflow-hidden rounded-2xl border sm:rounded-3xl"
       style={{
-        background: 'rgba(10,10,24,0.97)',
-        borderColor: `${bwColor}40`,
-        boxShadow: `0 0 30px ${bwColor}10`,
+        background: 'linear-gradient(165deg, rgba(10,12,28,0.98) 0%, rgba(16,20,38,0.96) 100%)',
+        borderColor: `${bwColor}55`,
+        boxShadow: `0 0 40px ${bwColor}18, inset 0 1px 0 rgba(255,255,255,0.06)`,
       }}
     >
-      <div className="flex items-center gap-3">
-        <div
-          className="flex h-9 w-9 items-center justify-center rounded-xl border"
-          style={{ background: `${bwColor}15`, borderColor: `${bwColor}35` }}
-        >
-          <span className="text-lg">⚾</span>
-        </div>
-        <div>
-          <div className="font-display text-sm font-bold text-white">Select Next Bowler</div>
-          <div className="text-xs text-white/40">
-            {inn.bowlingTeamId} · max {props.maxOversPerBowler} overs per bowler
-            {prev && <span> · {prev} cannot bowl back-to-back</span>}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-2 sm:grid-cols-2">
-        {eligible.map((name: string) => {
-          const ov = overs(name)
-          return (
-            <button
-              key={name}
-              onClick={() => props.onSelectBowler(name)}
-              className="flex items-center justify-between rounded-xl border px-3 py-2.5 text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
-              style={{ background: `${bwColor}0a`, borderColor: `${bwColor}30` }}
-            >
-              <span className="font-semibold text-white">{name}</span>
-              <span className="text-[10px] text-white/40">
-                {ov}/{props.maxOversPerBowler} ov
-              </span>
-            </button>
-          )
-        })}
-        {maxedOut.map((name: string) => (
+      <div
+        className="pointer-events-none absolute -left-12 -top-20 h-44 w-44 rounded-full blur-3xl opacity-35"
+        style={{ background: bwColor }}
+      />
+      <div className="relative p-4 sm:p-5">
+        <div className="flex flex-wrap items-start gap-3">
           <div
-            key={name}
-            className="flex items-center justify-between rounded-xl border px-3 py-2.5 opacity-35"
-            style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.06)' }}
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-2xl"
+            style={{
+              background: `linear-gradient(145deg, ${bwColor}40, ${bwColor}15)`,
+              borderColor: `${bwColor}50`,
+              boxShadow: `0 8px 24px ${bwColor}25`,
+            }}
           >
-            <span className="text-white/50">{name}</span>
-            <span className="text-[10px] text-white/30">quota done</span>
+            🎯
           </div>
-        ))}
+          <div className="min-w-0 flex-1">
+            <div
+              className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+              style={{ borderColor: `${bwColor}40`, color: bwColor, background: `${bwColor}12` }}
+            >
+              New over
+            </div>
+            <div className="font-display mt-1 text-base font-bold tracking-tight text-white sm:text-lg">
+              Arm ball — who&apos;s bowling?
+            </div>
+            <p className="mt-0.5 text-xs leading-snug text-white/45">
+              {inn.bowlingTeamId} · up to {props.maxOversPerBowler} overs each
+              {prev && (
+                <>
+                  {' '}
+                  · <span className="text-amber-200/80">{prev.split(' ').pop()}</span> just finished — can&apos;t repeat
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
+          {eligible.map((name: string) => {
+            const ov = oversBowled(name)
+            const pct = Math.min(100, (ov / props.maxOversPerBowler) * 100)
+            const st = spellStats(name)
+            const threat = st && st.wk >= 2
+            return (
+              <button
+                key={name}
+                type="button"
+                onClick={() => props.onSelectBowler(name)}
+                className="group flex items-center gap-3 rounded-2xl border px-3 py-3 text-left transition-all active:scale-[0.99] sm:px-4"
+                style={{
+                  background: `linear-gradient(90deg, ${bwColor}16 0%, rgba(255,255,255,0.02) 100%)`,
+                  borderColor: `${bwColor}38`,
+                }}
+              >
+                <div
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-extrabold uppercase text-white"
+                  style={{
+                    background: `linear-gradient(135deg, ${bwColor}50, ${bwColor}22)`,
+                    boxShadow: `0 4px 16px ${bwColor}30`,
+                  }}
+                >
+                  {playerInitials(name)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate font-display font-semibold text-white">{name}</span>
+                    {threat && (
+                      <span className="shrink-0 rounded bg-red-500/20 px-1.5 py-px text-[9px] font-bold uppercase tracking-wide text-red-300">
+                        danger
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full transition-all group-hover:brightness-110"
+                      style={{
+                        width: `${pct}%`,
+                        background: `linear-gradient(90deg, ${bwColor}, ${bwColor}99`,
+                        boxShadow: `0 0 12px ${bwColor}55`,
+                      }}
+                    />
+                  </div>
+                  <div className="mt-1 flex items-center justify-between text-[10px] text-white/40">
+                    <span>
+                      {ov}/{props.maxOversPerBowler} overs used
+                    </span>
+                    {st && st.balls > 0 && (
+                      <span className="font-mono text-white/50">
+                        {st.wk}-{st.runs} ({Math.floor(st.balls / 6)}.{st.balls % 6})
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <span className="shrink-0 text-lg text-white/20 transition group-hover:text-white/50" aria-hidden>
+                  →
+                </span>
+              </button>
+            )
+          })}
+          {maxedOut.map((name: string) => (
+            <div
+              key={name}
+              className="flex items-center gap-3 rounded-2xl border border-dashed px-3 py-3 opacity-45 sm:px-4"
+              style={{ background: 'rgba(0,0,0,0.2)', borderColor: 'rgba(255,255,255,0.08)' }}
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/5 text-sm font-bold text-white/25">
+                {playerInitials(name)}
+              </div>
+              <div className="flex-1">
+                <div className="text-sm text-white/45">{name}</div>
+                <div className="text-[10px] text-white/25">Overs quota reached — pick someone else</div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -217,9 +372,11 @@ export function CricketMatchView(props: {
         key={`ball-${props.pickSeq ?? 0}-${pending?.battingPick ?? 'x'}-${pending?.bowlingPick ?? 'x'}`}
         className="rounded-2xl border p-3 sm:rounded-3xl sm:p-5"
         style={{
-          background: 'rgba(10,10,24,0.95)',
-          borderColor: canPick ? `${isBatting ? bColor : oColor}35` : 'rgba(255,255,255,0.07)',
-          boxShadow: canPick ? `0 0 30px ${isBatting ? bColor : oColor}10` : 'none',
+          background: 'linear-gradient(180deg, rgba(14,14,32,0.98) 0%, rgba(10,10,24,0.96) 100%)',
+          borderColor: canPick ? `${isBatting ? bColor : oColor}40` : 'rgba(255,255,255,0.07)',
+          boxShadow: canPick
+            ? `0 0 36px ${isBatting ? bColor : oColor}14, inset 0 1px 0 rgba(255,255,255,0.05)`
+            : 'inset 0 1px 0 rgba(255,255,255,0.03)',
         }}
       >
         {/* Status row */}
@@ -274,16 +431,16 @@ export function CricketMatchView(props: {
           )}
           {inn?.freeHitNext && !awaitingBowler && !awaitingBatter && (
             <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#e9d5ff' }}>
-              Free hit — dismissal off same pick is disabled
+              Free hit — same bat/bowl pick can&apos;t dismiss you (incl. after a no ball)
             </div>
           )}
         </div>
 
         {/* Pick grids */}
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {/* Batting */}
           <PickGrid
-            label="Batsman pick"
+            label="Shot card"
+            hint="Pick your stroke — 0–6"
             icon="🏏"
             actions={BAT_ACTIONS}
             colors={BAT_COLORS}
@@ -292,9 +449,9 @@ export function CricketMatchView(props: {
             activeColor={bColor}
             onPick={props.onPick}
           />
-          {/* Bowling */}
           <PickGrid
-            label="Bowler pick"
+            label="Delivery"
+            hint="Plan your ball — 0–6"
             icon="⚾"
             actions={BOWL_ACTIONS}
             colors={BOWL_COLORS}
@@ -364,9 +521,11 @@ export function CricketMatchView(props: {
 }
 
 function PickGrid({
-  label, icon, actions, colors, active, myPick, activeColor, onPick
+  label, hint, icon, actions, colors, active, myPick, activeColor, onPick
 }: {
-  label: string; icon: string
+  label: string
+  hint: string
+  icon: string
   actions: { value: number; label: string }[]
   colors: string[]
   active: boolean
@@ -375,21 +534,37 @@ function PickGrid({
   onPick: (v: number) => void
 }) {
   return (
-    <div>
-      <div className="mb-2 flex items-center gap-2">
-        <span className="text-sm">{icon}</span>
-        <span
-          className="text-[10px] font-bold uppercase tracking-widest sm:text-xs"
-          style={{ color: active ? activeColor : 'rgba(255,255,255,0.3)' }}
-        >
-          {label}
-        </span>
+    <div
+      className="rounded-2xl border p-2.5 sm:p-3"
+      style={{
+        borderColor: active ? `${activeColor}28` : 'rgba(255,255,255,0.06)',
+        background: active ? `linear-gradient(160deg, ${activeColor}10 0%, rgba(0,0,0,0.12) 100%)` : 'rgba(0,0,0,0.15)',
+        boxShadow: active ? `inset 0 1px 0 ${activeColor}22` : undefined,
+      }}
+    >
+      <div className="mb-2 flex flex-wrap items-end justify-between gap-1">
+        <div className="flex items-center gap-2">
+          <span className="text-base drop-shadow sm:text-lg">{icon}</span>
+          <div>
+            <div
+              className="text-[10px] font-bold uppercase tracking-widest sm:text-xs"
+              style={{ color: active ? activeColor : 'rgba(255,255,255,0.3)' }}
+            >
+              {label}
+            </div>
+            <div className="text-[9px] text-white/30">{hint}</div>
+          </div>
+        </div>
         {active && myPick !== null && myPick !== undefined && (
           <span
-            className="ml-auto rounded px-1.5 py-0.5 text-[9px] font-bold sm:text-[10px]"
-            style={{ background: 'rgba(0,255,150,0.15)', color: '#00ff9d' }}
+            className="rounded-md px-2 py-0.5 text-[9px] font-bold sm:text-[10px]"
+            style={{
+              background: 'rgba(0,255,150,0.14)',
+              color: '#00ff9d',
+              boxShadow: '0 0 12px rgba(0,255,150,0.2)',
+            }}
           >
-            ✓ {myPick}
+            Locked {myPick}
           </span>
         )}
       </div>
@@ -403,13 +578,21 @@ function PickGrid({
               type="button"
               disabled={!active}
               onClick={() => onPick(a.value)}
-              className="relative flex flex-col items-center gap-0.5 rounded-xl border py-2 text-center transition-all disabled:cursor-not-allowed active:scale-95"
+              className="group relative flex flex-col items-center gap-0.5 rounded-xl border py-2 text-center transition-all disabled:cursor-not-allowed active:scale-95"
               style={
                 !active
                   ? { background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.05)', opacity: 0.4 }
                   : isSelected
-                  ? { background: `${btnColor}25`, borderColor: `${btnColor}70`, boxShadow: `0 0 12px ${btnColor}30`, transform: 'scale(1.05)' }
-                  : { background: `${btnColor}0a`, borderColor: `${btnColor}25` }
+                  ? {
+                      background: `${btnColor}28`,
+                      borderColor: `${btnColor}80`,
+                      boxShadow: `0 0 16px ${btnColor}35, inset 0 0 20px ${btnColor}15`,
+                      transform: 'scale(1.06)',
+                    }
+                  : {
+                      background: `${btnColor}0c`,
+                      borderColor: `${btnColor}30`,
+                    }
               }
             >
               <div
@@ -419,13 +602,19 @@ function PickGrid({
                 {a.value}
               </div>
               <div
-                className="text-[7px] font-semibold uppercase leading-tight sm:text-[9px]"
-                style={{ color: active ? `${btnColor}99` : 'rgba(255,255,255,0.2)' }}
+                className="max-w-[100%] truncate px-0.5 text-[6px] font-semibold uppercase leading-tight sm:text-[8px]"
+                style={{ color: active ? `${btnColor}aa` : 'rgba(255,255,255,0.2)' }}
               >
                 {a.label}
               </div>
+              {active && !isSelected && (
+                <div
+                  className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition group-hover:opacity-100"
+                  style={{ boxShadow: `inset 0 0 0 1px ${btnColor}40` }}
+                />
+              )}
               {isSelected && (
-                <div className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full" style={{ background: btnColor }} />
+                <div className="absolute right-1 top-1 h-1.5 w-1.5 animate-pulse rounded-full" style={{ background: btnColor }} />
               )}
             </button>
           )
