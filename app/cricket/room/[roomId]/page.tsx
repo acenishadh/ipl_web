@@ -8,6 +8,7 @@ import { CricketRoomHeader } from '@/components/cricket/CricketRoomHeader'
 import { CricketTopBar } from '@/components/cricket/CricketTopBar'
 import { CricketTossPanel } from '@/components/cricket/CricketTossPanel'
 import { CricketMatchView } from '@/components/cricket/CricketMatchView'
+import { CricketDevFooter, SHOW_CRICKET_DEV_UI } from '@/components/cricket/CricketDevFooter'
 import { CricketLobbyRoster } from '@/components/cricket/CricketLobbyRoster'
 import { CricketMatchSummary } from '@/components/cricket/CricketMatchSummary'
 import { CricketSchedule } from '@/components/cricket/CricketSchedule'
@@ -378,6 +379,10 @@ export default function CricketRoomPage() {
           <CricketLobbyRoster room={snap?.room ?? null} mySessionId={mySessionId} onKickPlayer={onKickPlayer} />
         )}
       </div>
+
+      {SHOW_CRICKET_DEV_UI && (
+        <CricketDevFooter match={match} league={league} myTeamId={myTeamId} />
+      )}
     </main>
   )
 }

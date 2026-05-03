@@ -16,20 +16,20 @@
       "static/chunks/main-app.js",
       "static/chunks/app/cricket/page.js"
     ],
-    "/cricket/join/page": [
+    "/cricket/create/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/cricket/join/page.js"
+      "static/chunks/app/cricket/create/page.js"
     ],
     "/cricket/room/[roomId]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/cricket/room/[roomId]/page.js"
     ],
-    "/cricket/create/page": [
+    "/cricket/join/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/cricket/create/page.js"
+      "static/chunks/app/cricket/join/page.js"
     ]
   }
 }
