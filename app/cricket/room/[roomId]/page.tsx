@@ -165,10 +165,16 @@ export default function CricketRoomPage() {
   const pickerOpen = teamPickerOpen || ((pickTeam || autoPickReady) && shouldPickTeam)
 
   return (
-    <main className="mx-auto max-w-6xl px-2 py-2 sm:px-4 sm:py-4">
+    <main className="page-shell mx-auto max-w-6xl px-2 py-2 sm:px-4 sm:py-4">
       {/* Ball popup */}
       {ballPopup && (
-        <div className="pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 px-4" style={{ animation: 'slide-up 0.25s ease-out' }}>
+        <div
+          className="pointer-events-none fixed left-1/2 z-50 -translate-x-1/2 px-4"
+          style={{
+            animation: 'slide-up 0.25s ease-out',
+            bottom: 'max(1.25rem, env(safe-area-inset-bottom, 0px))',
+          }}
+        >
           <div
             className="flex max-w-xs items-center gap-3 rounded-2xl border px-4 py-3 shadow-2xl"
             style={{

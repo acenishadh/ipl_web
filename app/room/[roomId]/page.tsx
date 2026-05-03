@@ -113,7 +113,7 @@ export default function RoomPage() {
   const pickerOpen = teamPickerOpen || (autoPickReady && shouldPickTeam)
 
   return (
-    <main className="landscape-main mx-auto max-w-6xl px-3 py-3 sm:px-6 sm:py-6">
+    <main className="page-shell landscape-main mx-auto max-w-6xl px-2 py-2 sm:px-5 sm:py-5">
       <SoldOverlay data={soldOverlay} onDone={() => setSoldOverlay(null)} />
       <TeamPickerModal
         open={pickerOpen}
@@ -251,10 +251,7 @@ export default function RoomPage() {
           ) : null}
 
           {tab === 'squad' ? (
-            <div
-              className="rounded-3xl border p-4 sm:p-5"
-              style={{ background: 'rgba(10,10,24,0.9)', borderColor: 'rgba(255,255,255,0.07)' }}
-            >
+            <div className="game-panel rounded-3xl border border-white/10 p-4 sm:p-5">
               <h3 className="font-display text-base font-bold text-white">🧑‍🤝‍🧑 Squad Browser</h3>
 
               {lobbyTeams.length === 0 ? (
@@ -371,10 +368,7 @@ export default function RoomPage() {
           ) : null}
 
           {tab === 'settings' ? (
-            <div
-              className="rounded-3xl border p-5"
-              style={{ background: 'rgba(10,10,24,0.9)', borderColor: 'rgba(255,255,255,0.07)' }}
-            >
+            <div className="game-panel rounded-3xl border border-white/10 p-5">
               <h3 className="font-display text-base font-bold text-white">⚙️ Settings</h3>
               <p className="mt-2 text-sm text-white/40">
                 Host can configure timer, increments, and export results (coming soon).
@@ -392,9 +386,9 @@ export default function RoomPage() {
       {/* Mobile portrait-only lobby toggle (hidden on sm+) */}
       <div className="mt-3 sm:hidden">
         <button
+          type="button"
           onClick={() => setShowMobileLobby((v) => !v)}
-          className="mb-2.5 flex w-full items-center justify-between rounded-2xl border px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.98]"
-          style={{ background: 'rgba(0,212,255,0.08)', borderColor: 'rgba(0,212,255,0.3)', color: '#00d4ff' }}
+          className="tap-target mb-2.5 flex min-h-[48px] w-full touch-manipulation items-center justify-between rounded-2xl border border-cyan-400/35 bg-cyan-500/10 px-4 py-3 text-sm font-bold text-cyan-100 transition-all active:scale-[0.98]"
         >
           <span>👥 Lobby · {room?.participants.length ?? 0} players</span>
           <span className="text-xs opacity-70">{showMobileLobby ? '▲ Hide' : '▼ Show'}</span>

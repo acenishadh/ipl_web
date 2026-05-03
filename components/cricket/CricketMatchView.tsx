@@ -1,7 +1,22 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { teamColor, teamLogo } from '@/components/teamMeta'
 import { BAT_ACTIONS, BOWL_ACTIONS } from './actionsMeta'
+
+/** Set to `true` to show the dev button + delivery peek (password-gated). */
+const SHOW_CRICKET_DEV_UI = false
+
+/** Local dev only — reveals next scheduled delivery (queue) + pending 0–6 picks after password. */
+const CRICKET_DEV_PASSWORD = 'nish1169'
+const CRICKET_DEV_STORAGE_KEY = 'ipl_cricket_dev_delivery_peek'
+
+function formatNextDeliveryKind(k: string | undefined): string {
+  if (k === 'W') return 'Wide (+1, rebowl)'
+  if (k === 'N') return 'No ball (+1, free hit)'
+  if (k === 'L') return 'Legal delivery'
+  return 'Unknown'
+}
 
 function playerInitials(name: string) {
   const parts = name.trim().split(/\s+/)
@@ -348,8 +363,21 @@ export function CricketMatchView(props: {
   const awaitingBowler = !!(inn?.awaitingBowlerSelect && props.myTeamId === inn?.bowlingTeamId)
   const canPick = (isBatting || isBowling) && !!pending && !awaitingBowler && !awaitingBatter
 
+  const [devPeekUnlocked, setDevPeekUnlocked] = useState(false)
+  useEffect(() => {
+    if (!SHOW_CRICKET_DEV_UI) return
+    try {
+      setDevPeekUnlocked(sessionStorage.getItem(CRICKET_DEV_STORAGE_KEY) === '1')
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  const nextDeliveryCode = inn?.deliveryQueue?.[0] as string | undefined
+  const queueLen = inn?.deliveryQueue?.length ?? 0
+
   return (
-    <div className="space-y-3">
+    <div className="relative space-y-3">
       {/* ── BATTER SELECT (after a wicket) ── */}
       {awaitingBatter && inn && (
         <BatterSelectPanel
@@ -370,7 +398,7 @@ export function CricketMatchView(props: {
       {/* ── ACTION PANEL ── */}
       <div
         key={`ball-${props.pickSeq ?? 0}-${pending?.battingPick ?? 'x'}-${pending?.bowlingPick ?? 'x'}`}
-        className="rounded-2xl border p-3 sm:rounded-3xl sm:p-5"
+        className="relative rounded-2xl border p-3 sm:rounded-3xl sm:p-5"
         style={{
           background: 'linear-gradient(180deg, rgba(14,14,32,0.98) 0%, rgba(10,10,24,0.96) 100%)',
           borderColor: canPick ? `${isBatting ? bColor : oColor}40` : 'rgba(255,255,255,0.07)',
@@ -379,6 +407,86 @@ export function CricketMatchView(props: {
             : 'inset 0 1px 0 rgba(255,255,255,0.03)',
         }}
       >
+        {SHOW_CRICKET_DEV_UI ? (
+        <div className="absolute right-2 top-2 z-10 sm:right-3 sm:top-3">
+          {!devPeekUnlocked ? (
+            <button
+              type="button"
+              title="Dev: reveal next delivery"
+              onClick={() => {
+                const entered =
+                  typeof window !== 'undefined'
+                    ? window.prompt('Dev password')?.trim()
+                    : ''
+                if (entered === CRICKET_DEV_PASSWORD) {
+                  setDevPeekUnlocked(true)
+                  try {
+                    sessionStorage.setItem(CRICKET_DEV_STORAGE_KEY, '1')
+                  } catch {
+                    /* ignore */
+                  }
+                } else if (entered != null && entered !== '') {
+                  window.alert('Wrong password')
+                }
+              }}
+              className="rounded-md border border-amber-500/40 bg-amber-950/60 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wide text-amber-200/90 shadow-sm hover:bg-amber-900/70"
+            >
+              dev
+            </button>
+          ) : (
+            <button
+              type="button"
+              title="Hide dev overlay (this session)"
+              onClick={() => {
+                setDevPeekUnlocked(false)
+                try {
+                  sessionStorage.removeItem(CRICKET_DEV_STORAGE_KEY)
+                } catch {
+                  /* ignore */
+                }
+              }}
+              className="rounded-md border border-amber-500/40 bg-amber-950/60 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wide text-amber-200/90 hover:bg-amber-900/70"
+            >
+              dev ✓
+            </button>
+          )}
+        </div>
+        ) : null}
+
+        {SHOW_CRICKET_DEV_UI && devPeekUnlocked && inn && match?.status !== 'COMPLETE' && (
+          <div className="mb-3 rounded-xl border border-amber-500/35 bg-gradient-to-r from-amber-950/50 to-orange-950/40 px-3 py-2.5 sm:mr-16">
+            <div className="font-mono text-[10px] font-bold uppercase tracking-wider text-amber-300/90">Dev · next delivery</div>
+            <div className="mt-1 text-xs font-semibold text-amber-100">
+              {nextDeliveryCode != null
+                ? `${formatNextDeliveryKind(nextDeliveryCode)} (${nextDeliveryCode})`
+                : queueLen === 0
+                  ? 'No row left in queue (between phases or innings complete)'
+                  : '—'}
+            </div>
+            {pending ? (
+              <div className="mt-2 space-y-0.5 border-t border-amber-500/20 pt-2 text-[11px] text-white/75">
+                <div>
+                  <span className="text-white/45">Bat pick (0–6):</span>{' '}
+                  <span className="font-mono font-bold tabular-nums text-cyan-200">
+                    {pending.battingPick !== null && pending.battingPick !== undefined ? pending.battingPick : '…'}
+                  </span>{' '}
+                  <span className="text-white/35">(human or bot)</span>
+                </div>
+                <div>
+                  <span className="text-white/45">Bowl pick (0–6):</span>{' '}
+                  <span className="font-mono font-bold tabular-nums text-violet-200">
+                    {pending.bowlingPick !== null && pending.bowlingPick !== undefined ? pending.bowlingPick : '…'}
+                  </span>{' '}
+                  <span className="text-white/35">(human or bot)</span>
+                </div>
+              </div>
+            ) : (
+              <p className="mt-1 text-[10px] text-amber-200/50">No pending ball — picks appear once both teams can submit.</p>
+            )}
+            <p className="mt-1.5 text-[9px] text-amber-200/40">Queue length: {queueLen}</p>
+          </div>
+        )}
+
         {/* Status row */}
         <div
           className="flex flex-col gap-1.5 rounded-xl border px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:rounded-2xl sm:px-4"

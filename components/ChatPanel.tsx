@@ -40,18 +40,15 @@ export function ChatPanel(props: {
   }
 
   return (
-    <div
-      className="flex flex-col rounded-3xl border p-4 sm:p-5"
-      style={{ background: 'rgba(10,10,24,0.9)', borderColor: 'rgba(255,255,255,0.07)' }}
-    >
+    <div className="game-panel flex flex-col rounded-3xl border border-fuchsia-500/10 p-4 sm:p-5">
       <div className="flex items-center justify-between">
         <h3 className="font-display text-base font-bold text-white">💬 Chat</h3>
         <span className="text-xs text-white/30">{props.messages.length} messages</span>
       </div>
 
-      <div ref={listRef} className="mt-3 max-h-[360px] space-y-2 overflow-auto pr-1">
+      <div ref={listRef} className="mt-3 max-h-[min(360px,50vh)] space-y-2 overflow-auto pr-1">
         {props.messages.length === 0 ? (
-          <p className="py-8 text-center text-sm text-white/25">No messages yet. Say hi! 👋</p>
+          <p className="py-8 text-center text-sm text-white/40">No messages yet — say hi! 👋</p>
         ) : null}
         {props.messages.map((m) => {
           const isMe = !!(props.mySessionId && m.sessionId === props.mySessionId)
@@ -119,7 +116,9 @@ export function ChatPanel(props: {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
           }}
           placeholder={me ? `Message as ${me.displayName}…` : 'Message…'}
-          className="h-11 w-full rounded-xl border px-4 text-sm text-white placeholder:text-white/25 focus:outline-none"
+          className="input-play h-auto min-h-[48px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-white placeholder:text-white/30 focus:outline-none sm:min-h-[44px]"
+          enterKeyHint="send"
+          autoComplete="off"
           style={{
             background: 'rgba(255,255,255,0.05)',
             borderColor: 'rgba(255,255,255,0.1)',
@@ -131,8 +130,8 @@ export function ChatPanel(props: {
         <button
           type="button"
           onClick={send}
-          className="h-11 shrink-0 rounded-xl px-4 text-sm font-bold text-black transition-all hover:scale-105 active:scale-95"
-          style={{ background: 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)', boxShadow: '0 0 15px rgba(0,212,255,0.3)' }}
+          className="tap-target min-h-[48px] shrink-0 touch-manipulation rounded-2xl px-5 text-sm font-bold text-slate-950 transition-all hover:scale-105 active:scale-95 sm:min-h-[44px]"
+          style={{ background: 'linear-gradient(135deg, #22d3ee 0%, #0891b2 100%)', boxShadow: '0 0 18px rgba(34,211,238,0.4)' }}
         >
           Send
         </button>

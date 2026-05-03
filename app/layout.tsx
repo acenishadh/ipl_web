@@ -1,6 +1,6 @@
 import './globals.css'
-import type { Metadata } from 'next'
-import { Rajdhani, Inter } from 'next/font/google'
+import type { Metadata, Viewport } from 'next'
+import { Rajdhani, Inter, Plus_Jakarta_Sans } from 'next/font/google'
 
 const rajdhani = Rajdhani({
   weight: ['400', '600', '700'],
@@ -15,14 +15,31 @@ const inter = Inter({
   display: 'swap',
 })
 
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-jakarta',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   title: 'IPL Arcade — Auction & Cricket',
   description: 'Real-time IPL auction and cricket simulator with friends.',
 }
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#070713' },
+  ],
+  colorScheme: 'dark',
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${rajdhani.variable} ${inter.variable}`}>
+    <html lang="en" className={`${rajdhani.variable} ${inter.variable} ${jakarta.variable}`}>
       <body className="min-h-screen antialiased">{children}</body>
     </html>
   )

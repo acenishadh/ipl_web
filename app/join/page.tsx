@@ -29,36 +29,29 @@ export default function JoinRoomPage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="page-shell relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -right-40 top-0 h-[450px] w-[450px] rounded-full bg-purple-500/[0.06] blur-[100px]" />
-        <div className="absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-pink-500/[0.05] blur-[100px]" />
+        <div className="absolute -right-40 top-0 h-[450px] w-[450px] rounded-full bg-violet-500/10 blur-[100px]" />
+        <div className="absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-fuchsia-500/8 blur-[100px]" />
       </div>
 
-      <div className="relative mx-auto max-w-md px-4 py-12 sm:px-6">
-        <Link href="/" className="mb-8 inline-flex items-center gap-2 text-sm text-white/40 transition-colors hover:text-white/70">
-          ← Back
+      <div className="relative mx-auto max-w-md px-2 py-10 sm:px-4 sm:py-12">
+        <Link href="/" className="link-back tap-target mb-6">
+          ← Back to home
         </Link>
 
-        <div className="mb-8">
-          <h1 className="font-display text-4xl font-bold text-white">Join Auction Room</h1>
-          <p className="mt-2 text-sm text-white/50">Enter the code your host shared.</p>
+        <div className="mb-7">
+          <h1 className="font-display text-3xl font-bold text-white sm:text-4xl">Join Auction Room</h1>
+          <p className="mt-2 text-sm leading-relaxed text-white/55">Enter the code your host shared.</p>
         </div>
 
-        <div
-          className="flex flex-col gap-5 rounded-3xl border p-6"
-          style={{
-            background: 'rgba(12,12,28,0.9)',
-            borderColor: 'rgba(168,85,247,0.15)',
-            boxShadow: '0 0 40px rgba(168,85,247,0.05), 0 20px 60px rgba(0,0,0,0.5)',
-          }}
-        >
+        <div className="game-panel flex flex-col gap-5 rounded-3xl border border-violet-400/20 p-5 sm:p-6">
           <label className="flex flex-col gap-2">
-            <span className="text-xs font-semibold uppercase tracking-widest text-white/50">Room code</span>
+            <span className="text-xs font-semibold uppercase tracking-widest text-violet-200/80">Room code</span>
             <input
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              className="rounded-xl border px-4 py-3 text-center font-mono text-xl font-bold tracking-widest text-white placeholder:text-white/20 focus:outline-none"
+              className="input-play rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center font-mono text-lg font-bold tracking-[0.2em] text-white placeholder:text-white/25 focus:outline-none sm:text-xl"
               style={inputStyle}
               onFocus={focusIn}
               onBlur={focusOut}
@@ -68,11 +61,11 @@ export default function JoinRoomPage() {
           </label>
 
           <label className="flex flex-col gap-2">
-            <span className="text-xs font-semibold uppercase tracking-widest text-white/50">Your name</span>
+            <span className="text-xs font-semibold uppercase tracking-widest text-violet-200/80">Your name</span>
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="rounded-xl border px-4 py-3 text-sm font-medium text-white placeholder:text-white/25 focus:outline-none"
+              className="input-play rounded-xl border border-white/10 bg-white/5 px-4 py-3 font-medium text-white placeholder:text-white/30 focus:outline-none"
               style={inputStyle}
               onFocus={focusIn}
               onBlur={focusOut}
@@ -81,8 +74,7 @@ export default function JoinRoomPage() {
           </label>
 
           <label
-            className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3"
-            style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.08)' }}
+            className="tap-target flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3.5"
           >
             <div>
               <div className="text-sm font-semibold text-white/80">Spectate only</div>
@@ -127,10 +119,10 @@ export default function JoinRoomPage() {
                 router.push(`/room/${res.roomId}?code=${code}&pickTeam=1`)
               })
             }}
-            className="rounded-xl py-3 text-sm font-bold text-black transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+            className="tap-target min-h-[50px] rounded-2xl py-3.5 text-sm font-bold text-slate-950 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-0"
             style={{
-              background: 'linear-gradient(135deg, #c084fc 0%, #a855f7 100%)',
-              boxShadow: '0 0 25px rgba(168,85,247,0.35)',
+              background: 'linear-gradient(135deg, #d8b4fe 0%, #a855f7 100%)',
+              boxShadow: '0 0 28px rgba(168,85,247,0.4)',
             }}
           >
             {loading ? 'Joining…' : 'Join room →'}

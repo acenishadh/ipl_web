@@ -17,13 +17,12 @@ export function LotHero(props: {
 
   if (!lot) {
     return (
-      <div
-        className="flex flex-col items-center justify-center rounded-3xl border p-8 text-center"
-        style={{ background: 'rgba(12,12,28,0.9)', borderColor: 'rgba(255,255,255,0.07)' }}
-      >
-        <div className="mb-3 text-4xl">⏳</div>
+      <div className="game-panel flex flex-col items-center justify-center rounded-3xl border border-violet-500/15 p-8 text-center">
+        <div className="mb-3 text-5xl hero-float select-none" aria-hidden>
+          ⏳
+        </div>
         <div className="font-display text-lg font-bold text-white">Waiting for next player…</div>
-        <p className="mt-1 text-sm text-white/40">Host will start the auction shortly</p>
+        <p className="mt-2 text-sm text-white/50">Host will start the auction shortly — grab some water! 💧</p>
       </div>
     )
   }
@@ -40,11 +39,10 @@ export function LotHero(props: {
 
   return (
     <div
-      className="relative overflow-hidden rounded-3xl border p-3 sm:p-5"
+      className="game-panel relative overflow-hidden rounded-3xl border p-3 sm:p-5"
       style={{
-        background: 'rgba(10,10,24,0.95)',
-        borderColor: `${color}35`,
-        boxShadow: `0 0 40px ${color}12, 0 20px 60px rgba(0,0,0,0.5)`,
+        borderColor: `${color}45`,
+        boxShadow: `0 0 48px ${color}18, 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)`,
       }}
     >
       {/* Background team glow */}
@@ -161,21 +159,21 @@ export function LotHero(props: {
         </div>
 
         {/* Row 3: Bid controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:gap-2">
           <div
-            className="flex-1 rounded-xl border px-2.5 py-2 text-sm"
-            style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)' }}
+            className="min-h-[48px] flex-1 rounded-2xl border px-3 py-2.5 text-sm sm:min-h-0"
+            style={{ background: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)' }}
           >
-            <span className="text-white/40">Bid </span>
-            <span className="font-mono font-bold text-white">₹{props.bidAmount}L</span>
+            <span className="text-white/45">Bid </span>
+            <span className="font-mono font-bold tabular-nums text-white">₹{props.bidAmount}L</span>
           </div>
           <button
             onClick={props.onInc25}
-            className="rounded-xl border px-2.5 py-2 text-sm font-bold transition-all hover:scale-105"
+            className="tap-target min-h-[48px] touch-manipulation rounded-2xl border px-4 py-2.5 text-sm font-bold transition-all hover:scale-105 active:scale-95 sm:min-h-0 sm:px-3 sm:py-2"
             style={{
-              background: 'rgba(255,255,255,0.06)',
-              borderColor: 'rgba(255,255,255,0.15)',
-              color: 'rgba(255,255,255,0.8)',
+              background: 'rgba(255,255,255,0.08)',
+              borderColor: 'rgba(255,255,255,0.18)',
+              color: 'rgba(255,255,255,0.9)',
             }}
             type="button"
           >
@@ -185,14 +183,14 @@ export function LotHero(props: {
             onClick={props.onBid}
             disabled={props.bidDisabled}
             type="button"
-            className="rounded-xl px-3 py-2 text-sm font-bold transition-all hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:px-5"
+            className="tap-target min-h-[48px] touch-manipulation rounded-2xl px-4 py-2.5 text-sm font-bold transition-all hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-0 sm:px-5"
             style={
               props.bidDisabled
-                ? { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)' }
+                ? { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
                 : {
-                    background: 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)',
-                    color: '#000',
-                    boxShadow: '0 0 20px rgba(0,212,255,0.5)',
+                    background: 'linear-gradient(135deg, #22d3ee 0%, #0891b2 100%)',
+                    color: '#0f172a',
+                    boxShadow: '0 0 22px rgba(34,211,238,0.55)',
                   }
             }
             title={props.bidDisabledReason}

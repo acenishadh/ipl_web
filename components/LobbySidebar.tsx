@@ -11,14 +11,7 @@ export function LobbySidebar(props: {
   const participants = props.room?.participants ?? []
 
   return (
-    <aside
-      className="rounded-3xl border p-3 sm:p-4"
-      style={{
-        background: 'rgba(10,10,24,0.9)',
-        borderColor: 'rgba(255,255,255,0.07)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-      }}
-    >
+    <aside className="game-panel rounded-3xl border border-cyan-500/12 p-3 sm:p-4">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-base font-bold text-white">Lobby</h2>
         <div

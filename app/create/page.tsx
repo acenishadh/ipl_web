@@ -15,36 +15,29 @@ export default function CreateRoomPage() {
   const [loading, setLoading] = useState(false)
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="page-shell relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 top-0 h-[450px] w-[450px] rounded-full bg-cyan-500/[0.06] blur-[100px]" />
-        <div className="absolute -right-40 bottom-0 h-[400px] w-[400px] rounded-full bg-purple-500/[0.06] blur-[100px]" />
+        <div className="absolute -left-40 top-0 h-[450px] w-[450px] rounded-full bg-cyan-400/10 blur-[100px]" />
+        <div className="absolute -right-40 bottom-0 h-[400px] w-[400px] rounded-full bg-violet-500/10 blur-[100px]" />
       </div>
 
-      <div className="relative mx-auto max-w-md px-4 py-12 sm:px-6">
-        <Link href="/" className="mb-8 inline-flex items-center gap-2 text-sm text-white/40 transition-colors hover:text-white/70">
-          ← Back
+      <div className="relative mx-auto max-w-md px-2 py-10 sm:px-4 sm:py-12">
+        <Link href="/" className="link-back tap-target mb-6">
+          ← Back to home
         </Link>
 
-        <div className="mb-8">
-          <h1 className="font-display text-4xl font-bold text-white">Create Auction Room</h1>
-          <p className="mt-2 text-sm text-white/50">No sign-up. Pick a team and invite friends.</p>
+        <div className="mb-7">
+          <h1 className="font-display text-3xl font-bold text-white sm:text-4xl">Create Auction Room</h1>
+          <p className="mt-2 text-sm leading-relaxed text-white/55">No sign-up. Pick a team and invite friends.</p>
         </div>
 
-        <div
-          className="flex flex-col gap-5 rounded-3xl border p-6"
-          style={{
-            background: 'rgba(12,12,28,0.9)',
-            borderColor: 'rgba(0,212,255,0.15)',
-            boxShadow: '0 0 40px rgba(0,212,255,0.05), 0 20px 60px rgba(0,0,0,0.5)',
-          }}
-        >
+        <div className="game-panel flex flex-col gap-5 rounded-3xl border border-cyan-400/20 p-5 sm:p-6">
           <label className="flex flex-col gap-2">
-            <span className="text-xs font-semibold uppercase tracking-widest text-white/50">Your name</span>
+            <span className="text-xs font-semibold uppercase tracking-widest text-cyan-200/70">Your name</span>
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="rounded-xl border px-4 py-3 text-sm font-medium text-white placeholder:text-white/25 focus:outline-none"
+              className="input-play rounded-xl border border-white/10 bg-white/5 px-4 py-3 font-medium text-white placeholder:text-white/30 focus:outline-none"
               style={{
                 background: 'rgba(255,255,255,0.04)',
                 borderColor: 'rgba(255,255,255,0.1)',
@@ -63,15 +56,11 @@ export default function CreateRoomPage() {
           </label>
 
           <label className="flex flex-col gap-2">
-            <span className="text-xs font-semibold uppercase tracking-widest text-white/50">Auction type</span>
+            <span className="text-xs font-semibold uppercase tracking-widest text-cyan-200/70">Auction type</span>
             <select
               value={mode}
               onChange={(e) => setMode(e.target.value as 'mock' | 'mega')}
-              className="rounded-xl border px-4 py-3 text-sm font-medium text-white focus:outline-none"
-              style={{
-                background: 'rgba(255,255,255,0.04)',
-                borderColor: 'rgba(255,255,255,0.1)',
-              }}
+              className="input-play rounded-xl border border-white/10 bg-white/5 px-4 py-3 font-medium text-white focus:outline-none"
             >
               <option value="mock">Mock Auction</option>
               <option value="mega">Mega Auction</option>
@@ -79,8 +68,7 @@ export default function CreateRoomPage() {
           </label>
 
           <label
-            className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3"
-            style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.08)' }}
+            className="tap-target flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3.5"
           >
             <div>
               <div className="text-sm font-semibold text-white/80">Public room</div>
@@ -125,10 +113,10 @@ export default function CreateRoomPage() {
                 router.push(`/room/${res.roomId}?code=${res.code}&pickTeam=1`)
               })
             }}
-            className="relative overflow-hidden rounded-xl py-3 text-sm font-bold text-black transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+            className="tap-target relative min-h-[50px] overflow-hidden rounded-2xl py-3.5 text-sm font-bold text-slate-950 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-0"
             style={{
-              background: 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)',
-              boxShadow: loading || !displayName.trim() ? 'none' : '0 0 25px rgba(0,212,255,0.4)',
+              background: 'linear-gradient(135deg, #22d3ee 0%, #0891b2 100%)',
+              boxShadow: loading || !displayName.trim() ? 'none' : '0 0 28px rgba(34,211,238,0.45)',
             }}
           >
             {loading ? 'Creating…' : 'Create room'}

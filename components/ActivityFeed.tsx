@@ -5,10 +5,7 @@ import { TEAM_META, teamColor, teamLogo } from './teamMeta'
 
 export function ActivityFeed(props: { events: string[]; playersById: Map<string, PlayerLite> }) {
   return (
-    <div
-      className="rounded-3xl border p-4 sm:p-5"
-      style={{ background: 'rgba(10,10,24,0.9)', borderColor: 'rgba(255,255,255,0.07)' }}
-    >
+    <div className="game-panel rounded-3xl border border-amber-400/10 p-4 sm:p-5">
       <div className="flex items-center justify-between">
         <h3 className="font-display text-base font-bold text-white">⚡ Activity</h3>
         <span className="text-xs text-white/30">{props.events.length} events</span>

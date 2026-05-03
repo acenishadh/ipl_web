@@ -25,18 +25,14 @@ export function RoomHeader(props: {
   }
 
   return (
-    <header
-      className="rounded-3xl border p-3 sm:p-4"
-      style={{
-        background: 'rgba(10,10,24,0.9)',
-        borderColor: 'rgba(255,255,255,0.07)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-      }}
-    >
+    <header className="game-panel rounded-3xl border border-cyan-500/15 p-3 sm:p-4">
       {/* Row 1: title + badges + select team */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-          <div className="font-display text-base font-bold text-white sm:text-xl">🏏 Auction</div>
+          <div className="font-display text-base font-bold sm:text-xl">
+            <span className="text-white">🏏</span>{' '}
+            <span className="bg-gradient-to-r from-cyan-200 to-fuchsia-200 bg-clip-text text-transparent">Auction</span>
+          </div>
           <span
             className="rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest sm:rounded-lg sm:px-2 sm:text-[10px]"
             style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)' }}
@@ -69,8 +65,9 @@ export function RoomHeader(props: {
           {/* Team button — clickable only in LOBBY, display-only afterwards */}
           {props.onSelectTeam && status === 'LOBBY' ? (
             <button
+              type="button"
               onClick={props.onSelectTeam}
-              className="flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs font-bold transition-all hover:scale-105 sm:rounded-xl sm:px-3 sm:py-1.5"
+              className="tap-target flex min-h-[40px] items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold touch-manipulation transition-all hover:scale-105 sm:min-h-0 sm:rounded-xl sm:px-3 sm:py-1.5"
               style={
                 props.myTeamId
                   ? { borderColor: `${color}50`, background: `${color}15`, color }
@@ -104,25 +101,26 @@ export function RoomHeader(props: {
 
       {/* Row 2: host controls (only shown when host) */}
       {isHost ? (
-        <div className="mt-2 flex items-center gap-1.5 sm:gap-2">
+        <div className="mt-2 flex flex-wrap items-center gap-2 sm:gap-2">
           <button
+            type="button"
             onClick={props.onStart}
-            className="rounded-lg px-3 py-1.5 text-xs font-bold text-black transition-all hover:scale-105 sm:rounded-xl sm:px-4 sm:text-sm"
-            style={{ background: 'linear-gradient(135deg, #00ff9d 0%, #00cc7a 100%)', boxShadow: '0 0 12px rgba(0,255,150,0.3)' }}
+            className="tap-target min-h-[44px] rounded-xl px-4 py-2 text-xs font-bold text-slate-950 touch-manipulation transition-all hover:scale-105 sm:min-h-0 sm:text-sm"
+            style={{ background: 'linear-gradient(135deg, #34d399 0%, #059669 100%)', boxShadow: '0 0 16px rgba(52,211,153,0.35)' }}
           >
-            Start
+            ▶ Start
           </button>
           <button
+            type="button"
             onClick={() => props.onPause(true)}
-            className="rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all hover:scale-105 sm:rounded-xl sm:px-4 sm:text-sm"
-            style={{ borderColor: 'rgba(249,115,22,0.4)', background: 'rgba(249,115,22,0.1)', color: '#fb923c' }}
+            className="tap-target min-h-[44px] rounded-xl border border-orange-400/45 bg-orange-500/12 px-4 py-2 text-xs font-semibold text-orange-200 touch-manipulation transition-all hover:scale-105 sm:min-h-0 sm:text-sm"
           >
             Pause
           </button>
           <button
+            type="button"
             onClick={() => props.onPause(false)}
-            className="rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all hover:scale-105 sm:rounded-xl sm:px-4 sm:text-sm"
-            style={{ borderColor: 'rgba(0,212,255,0.3)', background: 'rgba(0,212,255,0.08)', color: '#67e8f9' }}
+            className="tap-target min-h-[44px] rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-4 py-2 text-xs font-semibold text-cyan-100 touch-manipulation transition-all hover:scale-105 sm:min-h-0 sm:text-sm"
           >
             Resume
           </button>
