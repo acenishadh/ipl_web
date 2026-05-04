@@ -22,8 +22,8 @@ const jakarta = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'IPL Arcade — Auction & Cricket',
-  description: 'Real-time IPL auction and cricket simulator with friends.',
+  title: 'IPL Arcade — Live auction & cricket rooms',
+  description: 'Host or join real-time IPL-style auctions and pick-your-number cricket. Room codes, no sign-up, friends on any device.',
 }
 
 export const viewport: Viewport = {

@@ -299,6 +299,36 @@ function BowlerSelectPanel(props: {
 const BAT_COLORS = ['#64748b', '#22c55e', '#3b82f6', '#f59e0b', '#10b981', '#a855f7', '#00d4ff']
 const BOWL_COLORS = ['#64748b', '#6366f1', '#ec4899', '#ef4444', '#06b6d4', '#f97316', '#8b5cf6']
 
+function AiTurnPlaceholder(props: { label: string; teamId: string | null }) {
+  const tid = props.teamId ?? '—'
+  const c = teamColor(tid)
+  return (
+    <div
+      className="rounded-2xl border p-2.5 sm:p-3"
+      style={{
+        borderColor: 'rgba(255,255,255,0.06)',
+        background: 'rgba(0,0,0,0.18)',
+      }}
+    >
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <span className="text-base">🤖</span>
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-white/35">{props.label} (AI)</div>
+          <div className="text-[9px] text-white/25">
+            {tid} · simmed picks
+          </div>
+        </div>
+      </div>
+      <p
+        className="rounded-xl border border-dashed px-3 py-7 text-center text-xs leading-relaxed text-white/35"
+        style={{ borderColor: `${c}28` }}
+      >
+        This side is controlled by the AI. Your shot/ball inputs show only when you&apos;re batting or bowling.
+      </p>
+    </div>
+  )
+}
+
 const COMMENTARY_STYLES: Record<string, { bg: string; border: string; text: string; icon: string }> = {
   WICKET:   { bg: 'rgba(239,68,68,0.1)',   border: 'rgba(239,68,68,0.3)',   text: '#fca5a5', icon: '💥' },
   BOUNDARY: { bg: 'rgba(0,212,255,0.08)',  border: 'rgba(0,212,255,0.25)',  text: '#67e8f9', icon: '🚀' },
@@ -311,6 +341,8 @@ export function CricketMatchView(props: {
   match: any
   league: any
   myTeamId: string | null
+  /** Franchises controlled by AI — hide opponent pick UI in PvE. */
+  botTeamIds?: string[]
   onPick: (v: number) => void
   onSelectBowler: (name: string) => void
   onSelectBatter: (batterIndex: number) => void
@@ -344,27 +376,56 @@ export function CricketMatchView(props: {
   const bColor = teamColor(battingTeamId)
   const oColor = teamColor(bowlingTeamId)
 
-  const awaitingBatter = !!(inn?.awaitingBatterSelect && props.myTeamId === inn?.battingTeamId)
-  const awaitingBowler = !!(inn?.awaitingBowlerSelect && props.myTeamId === inn?.bowlingTeamId)
-  const canPick = (isBatting || isBowling) && !!pending && !awaitingBowler && !awaitingBatter
+  const botTeamIds: string[] = props.botTeamIds ?? []
+  const humanBattingSide = !!(inn && !botTeamIds.includes(inn.battingTeamId))
+  const humanBowlingSide = !!(inn && !botTeamIds.includes(inn.bowlingTeamId))
+
+  /** Next batsman must be chosen before the next over’s bowler when both flags are set (last-ball wicket). */
+  const batterChoiceBlockingOver = !!(inn?.awaitingBatterSelect)
+
+  const iPickBatter =
+    !!inn?.awaitingBatterSelect &&
+    props.myTeamId === inn?.battingTeamId &&
+    humanBattingSide
+
+  const iPickBowler =
+    !!inn?.awaitingBowlerSelect &&
+    !batterChoiceBlockingOver &&
+    props.myTeamId === inn?.bowlingTeamId &&
+    humanBowlingSide
+
+  const canPick =
+    (isBatting || isBowling) &&
+    !!pending &&
+    !iPickBowler &&
+    !iPickBatter &&
+    (isBatting ? humanBattingSide : true) &&
+    (isBowling ? humanBowlingSide : true)
+
+  const showSelectionOverlay = iPickBatter || iPickBowler
 
   return (
     <div className="relative space-y-3">
-      {/* ── BATTER SELECT (after a wicket) ── */}
-      {awaitingBatter && inn && (
-        <BatterSelectPanel
-          inn={inn}
-          onSelectBatter={props.onSelectBatter}
-        />
-      )}
-
-      {/* ── BOWLER SELECT (when needed) ── */}
-      {awaitingBowler && !awaitingBatter && (
-        <BowlerSelectPanel
-          inn={inn}
-          onSelectBowler={props.onSelectBowler}
-          maxOversPerBowler={maxOversPerBowler}
-        />
+      {/* ── Modals: crease + new over (above everything so last-ball wicket isn’t buried) ── */}
+      {showSelectionOverlay && inn && (
+        <div
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/55 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-[2px] sm:items-center sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Match selection"
+        >
+          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto sm:max-h-[90vh]">
+            {iPickBatter ? (
+              <BatterSelectPanel inn={inn} onSelectBatter={props.onSelectBatter} />
+            ) : iPickBowler ? (
+              <BowlerSelectPanel
+                inn={inn}
+                onSelectBowler={props.onSelectBowler}
+                maxOversPerBowler={maxOversPerBowler}
+              />
+            ) : null}
+          </div>
+        </div>
       )}
 
       {/* ── ACTION PANEL ── */}
@@ -423,43 +484,54 @@ export function CricketMatchView(props: {
               )}
             </div>
           )}
-          {inn?.awaitingBatterSelect && !awaitingBatter && (
+          {inn?.awaitingBatterSelect && humanBattingSide && !iPickBatter && (
             <div className="text-xs text-white/40">⏳ Waiting for batting team to send next batter…</div>
           )}
-          {inn?.awaitingBowlerSelect && !awaitingBowler && !inn?.awaitingBatterSelect && (
+          {inn?.awaitingBowlerSelect && humanBowlingSide && !iPickBowler && inn?.awaitingBatterSelect && (
+            <div className="text-xs text-amber-200/70">⏳ Next batsman first — then you&apos;ll choose the bowler for the new over.</div>
+          )}
+          {inn?.awaitingBowlerSelect && humanBowlingSide && !iPickBowler && !inn?.awaitingBatterSelect && (
             <div className="text-xs text-white/40">⏳ Waiting for bowler selection…</div>
           )}
-          {inn?.freeHitNext && !awaitingBowler && !awaitingBatter && (
+          {inn?.freeHitNext && !iPickBowler && !iPickBatter && (
             <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#e9d5ff' }}>
               Free hit — same bat/bowl pick can&apos;t dismiss you (incl. after a no ball)
             </div>
           )}
         </div>
 
-        {/* Pick grids */}
+        {/* Pick grids — PvE: only show the human-controlled side’s actions */}
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <PickGrid
-            label="Shot card"
-            hint="Pick your stroke — 0–6"
-            icon="🏏"
-            actions={BAT_ACTIONS}
-            colors={BAT_COLORS}
-            active={isBatting}
-            myPick={isBatting ? myPick : undefined}
-            activeColor={bColor}
-            onPick={props.onPick}
-          />
-          <PickGrid
-            label="Delivery"
-            hint="Plan your ball — 0–6"
-            icon="⚾"
-            actions={BOWL_ACTIONS}
-            colors={BOWL_COLORS}
-            active={isBowling}
-            myPick={isBowling ? myPick : undefined}
-            activeColor={oColor}
-            onPick={props.onPick}
-          />
+          {humanBattingSide ? (
+            <PickGrid
+              label="Shot card"
+              hint="Pick your stroke — 0–6"
+              icon="🏏"
+              actions={BAT_ACTIONS}
+              colors={BAT_COLORS}
+              active={isBatting}
+              myPick={isBatting ? myPick : undefined}
+              activeColor={bColor}
+              onPick={props.onPick}
+            />
+          ) : (
+            <AiTurnPlaceholder label="Batting" teamId={battingTeamId} />
+          )}
+          {humanBowlingSide ? (
+            <PickGrid
+              label="Delivery"
+              hint="Plan your ball — 0–6"
+              icon="⚾"
+              actions={BOWL_ACTIONS}
+              colors={BOWL_COLORS}
+              active={isBowling}
+              myPick={isBowling ? myPick : undefined}
+              activeColor={oColor}
+              onPick={props.onPick}
+            />
+          ) : (
+            <AiTurnPlaceholder label="Bowling" teamId={bowlingTeamId} />
+          )}
         </div>
       </div>
 

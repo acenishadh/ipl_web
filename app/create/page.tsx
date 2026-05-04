@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSocket } from '@/lib/socket'
 import Link from 'next/link'
+import { FlowAmbient } from '@/components/FlowAmbient'
+import { FormPageHero } from '@/components/FormPageHero'
 
 export default function CreateRoomPage() {
   const router = useRouter()
@@ -16,22 +18,25 @@ export default function CreateRoomPage() {
 
   return (
     <main className="page-shell relative min-h-screen overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 top-0 h-[450px] w-[450px] rounded-full bg-cyan-400/10 blur-[100px]" />
-        <div className="absolute -right-40 bottom-0 h-[400px] w-[400px] rounded-full bg-violet-500/10 blur-[100px]" />
-      </div>
+      <FlowAmbient variant="auction" />
 
       <div className="relative mx-auto max-w-md px-2 py-10 sm:px-4 sm:py-12">
-        <Link href="/" className="link-back tap-target mb-6">
+        <Link href="/" className="link-back tap-target mb-2">
           ← Back to home
         </Link>
 
-        <div className="mb-7">
-          <h1 className="font-display text-3xl font-bold text-white sm:text-4xl">Create Auction Room</h1>
-          <p className="mt-2 text-sm leading-relaxed text-white/55">No sign-up. Pick a team and invite friends.</p>
-        </div>
+        <FormPageHero
+          accent="cyan"
+          kicker="Auction host"
+          title="Open a new room"
+          subtitle="You’ll get a shareable code instantly. Friends join from any device with the same WebSocket session magic."
+          trust={['120 Cr purse', 'Live bids', 'Pick franchise next']}
+        />
 
-        <div className="game-panel flex flex-col gap-5 rounded-3xl border border-cyan-400/20 p-5 sm:p-6">
+        <div
+          className="game-panel page-enter flex flex-col gap-5 rounded-3xl border border-cyan-400/25 p-5 sm:p-6"
+          style={{ animationDelay: '90ms' }}
+        >
           <label className="flex flex-col gap-2">
             <span className="text-xs font-semibold uppercase tracking-widest text-cyan-200/70">Your name</span>
             <input
@@ -99,6 +104,7 @@ export default function CreateRoomPage() {
 
           <button
             disabled={loading || !displayName.trim()}
+            aria-busy={loading}
             onClick={() => {
               setError(null)
               setLoading(true)
@@ -119,9 +125,18 @@ export default function CreateRoomPage() {
               boxShadow: loading || !displayName.trim() ? 'none' : '0 0 28px rgba(34,211,238,0.45)',
             }}
           >
-            {loading ? 'Creating…' : 'Create room'}
+            {loading ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-900/30 border-t-slate-900" />
+                Creating…
+              </span>
+            ) : (
+              'Create room →'
+            )}
           </button>
         </div>
+
+        <p className="site-footer-hint mt-8 text-center">Room persists while players are connected</p>
       </div>
     </main>
   )

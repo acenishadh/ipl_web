@@ -32,14 +32,15 @@ export function CricketRoomHeader(props: {
     <header
       className="rounded-2xl border p-2.5 sm:rounded-3xl sm:p-4"
       style={{
-        background: 'rgba(10,10,24,0.9)',
-        borderColor: 'rgba(255,255,255,0.07)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+        background: 'linear-gradient(165deg, rgba(20,20,45,0.95) 0%, rgba(10,10,24,0.92) 100%)',
+        borderColor: 'rgba(255,255,255,0.1)',
+        boxShadow: '0 4px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
+        backdropFilter: 'blur(12px)',
       }}
     >
       {/* Row 1: title + status badges */}
       <div className="flex flex-wrap items-center gap-1.5">
-        <div className="font-display text-sm font-bold text-white sm:text-base">🏟️ Cricket</div>
+        <div className="font-display text-sm font-bold tracking-tight text-white sm:text-base">🏟️ Live room</div>
         <span
           className="rounded px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider sm:text-[9px]"
           style={{ background: 'rgba(255,0,110,0.12)', color: '#f472b6' }}

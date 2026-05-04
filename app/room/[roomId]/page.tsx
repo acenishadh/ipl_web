@@ -14,6 +14,7 @@ import { usePlayersIndex } from '@/lib/usePlayersIndex'
 import { SoldOverlay, type SoldOverlayData } from '@/components/SoldOverlay'
 import { TEAM_META, teamColor, teamLogo } from '@/components/teamMeta'
 import { ChatPanel, type ChatMessage } from '@/components/ChatPanel'
+import { FlowAmbient } from '@/components/FlowAmbient'
 
 export default function RoomPage() {
   const params = useParams<{ roomId: string }>()
@@ -113,7 +114,8 @@ export default function RoomPage() {
   const pickerOpen = teamPickerOpen || (autoPickReady && shouldPickTeam)
 
   return (
-    <main className="page-shell landscape-main mx-auto max-w-6xl px-2 py-2 sm:px-5 sm:py-5">
+    <main className="page-shell landscape-main relative mx-auto max-w-6xl overflow-x-hidden px-2 py-2 sm:px-5 sm:py-5">
+      <FlowAmbient variant="auction" />
       <SoldOverlay data={soldOverlay} onDone={() => setSoldOverlay(null)} />
       <TeamPickerModal
         open={pickerOpen}

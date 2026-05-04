@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSocket } from '@/lib/socket'
 import Link from 'next/link'
+import { FlowAmbient } from '@/components/FlowAmbient'
+import { FormPageHero } from '@/components/FormPageHero'
 
 export default function JoinRoomPage() {
   const router = useRouter()
@@ -30,22 +32,25 @@ export default function JoinRoomPage() {
 
   return (
     <main className="page-shell relative min-h-screen overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -right-40 top-0 h-[450px] w-[450px] rounded-full bg-violet-500/10 blur-[100px]" />
-        <div className="absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-fuchsia-500/8 blur-[100px]" />
-      </div>
+      <FlowAmbient variant="auction" />
 
       <div className="relative mx-auto max-w-md px-2 py-10 sm:px-4 sm:py-12">
-        <Link href="/" className="link-back tap-target mb-6">
+        <Link href="/" className="link-back tap-target mb-2">
           ← Back to home
         </Link>
 
-        <div className="mb-7">
-          <h1 className="font-display text-3xl font-bold text-white sm:text-4xl">Join Auction Room</h1>
-          <p className="mt-2 text-sm leading-relaxed text-white/55">Enter the code your host shared.</p>
-        </div>
+        <FormPageHero
+          accent="violet"
+          kicker="Join draft"
+          title="Enter the room code"
+          subtitle="Use the same code the host sent — uppercase or mixed case is fine. We’ll drop you straight into the lobby."
+          trust={['Spectator mode', 'Resume with name', 'Any device']}
+        />
 
-        <div className="game-panel flex flex-col gap-5 rounded-3xl border border-violet-400/20 p-5 sm:p-6">
+        <div
+          className="game-panel page-enter flex flex-col gap-5 rounded-3xl border border-violet-400/25 p-5 sm:p-6"
+          style={{ animationDelay: '90ms' }}
+        >
           <label className="flex flex-col gap-2">
             <span className="text-xs font-semibold uppercase tracking-widest text-violet-200/80">Room code</span>
             <input
@@ -105,6 +110,7 @@ export default function JoinRoomPage() {
 
           <button
             disabled={loading || !code.trim() || !displayName.trim()}
+            aria-busy={loading}
             onClick={() => {
               setError(null)
               setLoading(true)
@@ -125,9 +131,18 @@ export default function JoinRoomPage() {
               boxShadow: '0 0 28px rgba(168,85,247,0.4)',
             }}
           >
-            {loading ? 'Joining…' : 'Join room →'}
+            {loading ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-900/20 border-t-slate-900" />
+                Joining…
+              </span>
+            ) : (
+              'Enter room →'
+            )}
           </button>
         </div>
+
+        <p className="site-footer-hint mt-8 text-center">Franchise pick comes right after you land</p>
       </div>
     </main>
   )

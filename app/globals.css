@@ -99,7 +99,13 @@ body {
   margin: -0.35rem -0.25rem;
 }
 .link-back:hover {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateX(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .link-back:hover {
+    transform: none;
+  }
 }
 .link-back:focus-visible {
   outline: 2px solid var(--focus-ring);
@@ -199,6 +205,62 @@ body {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: page-enter 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter {
+    animation: none;
+  }
+}
+
+/* Stagger children inside a grid/flex (max ~8 items) */
+.stagger-children > * {
+  animation: page-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger-children > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger-children > *:nth-child(2) {
+  animation-delay: 45ms;
+}
+.stagger-children > *:nth-child(3) {
+  animation-delay: 90ms;
+}
+.stagger-children > *:nth-child(4) {
+  animation-delay: 135ms;
+}
+.stagger-children > *:nth-child(5) {
+  animation-delay: 180ms;
+}
+.stagger-children > *:nth-child(6) {
+  animation-delay: 225ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stagger-children > * {
+    animation: none;
+  }
+}
+
+.site-footer-hint {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.22);
 }
 
 @keyframes timer-warn {

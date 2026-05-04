@@ -19,6 +19,7 @@ import { CricketCapLeaderboards } from '@/components/cricket/CricketCapLeaderboa
 import { CricketTournamentVictory } from '@/components/cricket/CricketTournamentVictory'
 import { teamColor, teamLogo } from '@/components/teamMeta'
 import { reactToCricketCommentary } from '@/lib/cricketMoments'
+import { FlowAmbient } from '@/components/FlowAmbient'
 
 type CricketSnapshot = any
 type BallPopup = { text: string; kind: string } | null
@@ -166,7 +167,8 @@ export default function CricketRoomPage() {
   const pickerOpen = teamPickerOpen || ((pickTeam || autoPickReady) && shouldPickTeam)
 
   return (
-    <main className="page-shell mx-auto max-w-6xl px-2 py-2 sm:px-4 sm:py-4">
+    <main className="page-shell relative mx-auto max-w-6xl overflow-x-hidden px-2 py-2 sm:px-4 sm:py-4">
+      <FlowAmbient variant="cricket" />
       {/* Ball popup */}
       {ballPopup && (
         <div
@@ -636,6 +638,7 @@ function MatchTab({
       match={match}
       league={league}
       myTeamId={myTeamId}
+      botTeamIds={league?.botTeamIds ?? []}
       commentary={commentary}
       oversPerMatch={oversPerMatch}
       pickSeq={match?.pickSeq ?? 0}

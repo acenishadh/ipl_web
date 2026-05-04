@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSocket } from '@/lib/socket'
 import Link from 'next/link'
+import { FlowAmbient } from '@/components/FlowAmbient'
+import { FormPageHero } from '@/components/FormPageHero'
 
 export default function CricketJoinRoomPage() {
   const router = useRouter()
@@ -30,22 +32,25 @@ export default function CricketJoinRoomPage() {
 
   return (
     <main className="page-shell relative min-h-screen overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -right-40 top-0 h-[450px] w-[450px] rounded-full bg-rose-400/10 blur-[100px]" />
-        <div className="absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-orange-400/8 blur-[100px]" />
-      </div>
+      <FlowAmbient variant="cricket" />
 
       <div className="relative mx-auto max-w-md px-2 py-10 sm:px-4 sm:py-12">
-        <Link href="/cricket" className="link-back tap-target mb-6">
+        <Link href="/cricket" className="link-back tap-target mb-2">
           ← Back to cricket
         </Link>
 
-        <div className="mb-7">
-          <h1 className="font-display text-3xl font-bold text-white sm:text-4xl">Join Cricket Room</h1>
-          <p className="mt-2 text-sm leading-relaxed text-white/55">Enter the room code your friend shared.</p>
-        </div>
+        <FormPageHero
+          accent="rose"
+          kicker="Join match"
+          title="Got a room code?"
+          subtitle="Same display name + code restores your franchise after refresh — jump back into the season anytime."
+          trust={['Works on mobile', 'Spectate optional', 'Low latency']}
+        />
 
-        <div className="game-panel game-panel-warm flex flex-col gap-5 rounded-3xl border border-rose-400/20 p-5 sm:p-6">
+        <div
+          className="game-panel game-panel-warm page-enter flex flex-col gap-5 rounded-3xl border border-rose-400/25 p-5 sm:p-6"
+          style={{ animationDelay: '90ms' }}
+        >
           <label className="flex flex-col gap-2">
             <span className="text-xs font-semibold uppercase tracking-widest text-rose-200/75">Room code</span>
             <input
@@ -95,6 +100,7 @@ export default function CricketJoinRoomPage() {
 
           <button
             disabled={loading || !code.trim() || !displayName.trim()}
+            aria-busy={loading}
             onClick={() => {
               setError(null)
               setLoading(true)
@@ -115,9 +121,18 @@ export default function CricketJoinRoomPage() {
               boxShadow: '0 0 28px rgba(244,63,94,0.45)',
             }}
           >
-            {loading ? 'Joining…' : 'Join room →'}
+            {loading ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
+                Joining…
+              </span>
+            ) : (
+              'Take me to the room →'
+            )}
           </button>
         </div>
+
+        <p className="site-footer-hint mt-8 text-center">Tip · Ask your host for overs length before you pick</p>
       </div>
     </main>
   )

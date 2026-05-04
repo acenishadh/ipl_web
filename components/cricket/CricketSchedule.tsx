@@ -16,8 +16,8 @@ export function CricketSchedule(props: { league: any; currentMatchId?: string | 
   const resultMap = new Map<string, string | null>()
   for (const r of results) resultMap.set(r.matchId, r.winnerTeamId)
 
-  // Group into rounds of 5 (for 10-team round robin)
-  const roundSize = Math.floor((props.league?.teamsCount ?? 10) / 2)
+  // Group by round: round-robin order (each team at most one match per round for an even count)
+  const roundSize = Math.max(1, Math.floor((props.league?.teamsCount ?? 10) / 2))
   const rounds: Fixture[][] = []
   for (let i = 0; i < fixtures.length; i += roundSize) {
     rounds.push(fixtures.slice(i, i + roundSize))
@@ -30,7 +30,8 @@ export function CricketSchedule(props: { league: any; currentMatchId?: string | 
     >
       <h3 className="font-display text-sm font-bold text-white sm:text-base">📅 Schedule</h3>
       <p className="mt-0.5 text-xs text-white/35">
-        {fixtures.length} group stage matches · {results.length} completed
+        {fixtures.length} group stage matches · {results.length} completed · {rounds.length} rounds of {roundSize} match
+        {roundSize === 1 ? '' : 'es'} each (no team plays more than once in the same round)
       </p>
 
       <div className="mt-3 max-h-80 space-y-4 overflow-y-auto pr-1 sm:max-h-[28rem]">
