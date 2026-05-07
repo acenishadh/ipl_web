@@ -15,7 +15,7 @@ import { SoldOverlay, type SoldOverlayData } from '@/components/SoldOverlay'
 import { TEAM_META, teamColor, teamLogo } from '@/components/teamMeta'
 import { ChatPanel, type ChatMessage } from '@/components/ChatPanel'
 import { FlowAmbient } from '@/components/FlowAmbient'
-import { Crore, Lakh } from '@ipl-auction/rules'
+import { Crore, Lakh } from '@/lib/money'
 import { useRouter } from 'next/navigation'
 
 export default function RoomPage() {
