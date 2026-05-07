@@ -52,7 +52,14 @@ function TeamPodium(props: { teamId: string; title: string; rank: 1 | 2; blurb: 
         style={{ borderColor: `${c}55`, background: `${c}12` }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={teamLogo(teamId) ?? ''} alt="" className="h-14 w-14 object-contain sm:h-16 sm:w-16" />
+        {teamLogo(teamId) ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={teamLogo(teamId) as string} alt="" className="h-14 w-14 object-contain sm:h-16 sm:w-16" />
+        ) : (
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-lg font-black text-white/60">
+            {String(teamId).slice(0, 2)}
+          </div>
+        )}
       </div>
       <div className="mt-3 font-display text-2xl font-bold sm:text-3xl" style={{ color: c }}>
         {teamId}
@@ -143,7 +150,14 @@ export function CricketTournamentVictory(props: { league: any }) {
                   <div className="mt-2 font-display text-2xl font-bold text-white">{orange.player}</div>
                   <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-sm text-white/55 sm:justify-start">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={teamLogo(orange.teamId) ?? ''} alt="" className="h-6 w-6 object-contain" />
+                    {teamLogo(orange.teamId) ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={teamLogo(orange.teamId) as string} alt="" className="h-6 w-6 object-contain" />
+                    ) : (
+                      <div className="flex h-6 w-6 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-[10px] font-black text-white/60">
+                        {String(orange.teamId).slice(0, 2)}
+                      </div>
+                    )}
                     <span style={{ color: teamColor(orange.teamId) }} className="font-bold">
                       {orange.teamId}
                     </span>
@@ -177,7 +191,14 @@ export function CricketTournamentVictory(props: { league: any }) {
                   <div className="mt-2 font-display text-2xl font-bold text-white">{purple.player}</div>
                   <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-sm text-white/55 sm:justify-start">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={teamLogo(purple.teamId) ?? ''} alt="" className="h-6 w-6 object-contain" />
+                    {teamLogo(purple.teamId) ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={teamLogo(purple.teamId) as string} alt="" className="h-6 w-6 object-contain" />
+                    ) : (
+                      <div className="flex h-6 w-6 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-[10px] font-black text-white/60">
+                        {String(purple.teamId).slice(0, 2)}
+                      </div>
+                    )}
                     <span style={{ color: teamColor(purple.teamId) }} className="font-bold">
                       {purple.teamId}
                     </span>

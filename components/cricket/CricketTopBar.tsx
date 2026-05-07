@@ -90,11 +90,11 @@ export function CricketTopBar(props: {
       style={{
         background: 'rgba(10,10,24,0.95)',
         borderColor: 'rgba(255,255,255,0.08)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+        boxShadow: '0 6px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)',
       }}
     >
       {/* Main score row */}
-      <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4">
+      <div className="flex items-center justify-between gap-2 px-3 py-3 sm:px-6 sm:py-4">
         {/* Home team */}
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           {home ? (
@@ -117,7 +117,7 @@ export function CricketTopBar(props: {
         {/* Score */}
         <div className="flex min-w-0 flex-1 flex-col items-center px-2 text-center sm:px-4">
           <div
-            className="w-full truncate font-display text-xs font-bold text-white sm:text-sm md:text-base"
+            className="w-full truncate font-display text-[11px] font-bold text-white sm:text-sm md:text-base"
             style={{ textShadow: '0 0 15px rgba(255,255,255,0.2)' }}
           >
             {props.scoreText}

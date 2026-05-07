@@ -24,11 +24,11 @@ export function TeamPickerModal(props: {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center p-3 sm:items-center sm:p-4"
       style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}
     >
       <div
-        className="w-full max-w-3xl animate-[slide-up_0.25s_ease-out] rounded-3xl border p-6 sm:p-8"
+        className="w-full max-w-3xl animate-[slide-up_0.25s_ease-out] rounded-3xl border p-4 sm:p-8"
         style={{
           background: 'rgba(10,10,24,0.98)',
           borderColor: 'rgba(0,212,255,0.2)',
@@ -64,7 +64,7 @@ export function TeamPickerModal(props: {
           ) : null}
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+        <div className="mt-5 grid max-h-[70vh] grid-cols-2 gap-3 overflow-auto pr-1 sm:mt-6 sm:max-h-none sm:grid-cols-3 md:grid-cols-5">
           {TEAM_META.map((t) => {
             const disabled = taken.has(t.id)
             const color = teamColor(t.id)
@@ -73,7 +73,7 @@ export function TeamPickerModal(props: {
                 key={t.id}
                 disabled={disabled}
                 onClick={() => props.onPick(t.id)}
-                className="group flex flex-col items-center gap-3 rounded-2xl border p-3 text-center transition-all hover:-translate-y-1 disabled:cursor-not-allowed disabled:opacity-30"
+                className="group flex flex-col items-center gap-2 rounded-2xl border p-3 text-center transition-all hover:-translate-y-1 disabled:cursor-not-allowed disabled:opacity-30 sm:gap-3"
                 style={
                   disabled
                     ? { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)' }
@@ -97,11 +97,11 @@ export function TeamPickerModal(props: {
                 }}
               >
                 <div
-                  className="flex h-16 w-16 items-center justify-center rounded-xl"
+                  className="flex h-14 w-14 items-center justify-center rounded-xl sm:h-16 sm:w-16"
                   style={{ background: disabled ? 'rgba(255,255,255,0.04)' : `${color}15` }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={t.logo} alt={t.name} className="h-12 w-12 object-contain" />
+                  <img src={t.logo} alt={t.name} className="h-10 w-10 object-contain sm:h-12 sm:w-12" />
                 </div>
                 <div>
                   <div

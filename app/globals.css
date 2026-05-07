@@ -156,6 +156,27 @@ body {
   background: linear-gradient(180deg, rgba(34, 211, 238, 0.55), rgba(192, 132, 252, 0.55));
 }
 
+/* Hide scrollbar (mobile tab bars, chips) */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Subtle "glass" outline for premium UI */
+.glass-outline {
+  box-shadow:
+    0 6px 32px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
 /* ── Keyframe animations ────────────────────────── */
 @keyframes confetti {
   0% {

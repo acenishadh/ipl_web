@@ -29,48 +29,43 @@ export function CricketRoomHeader(props: {
     (status === 'LOBBY' || ((status === 'RUNNING' || status === 'PAUSED') && !props.myTeamId))
 
   return (
-    <header
-      className="rounded-2xl border p-2.5 sm:rounded-3xl sm:p-4"
-      style={{
-        background: 'linear-gradient(165deg, rgba(20,20,45,0.95) 0%, rgba(10,10,24,0.92) 100%)',
-        borderColor: 'rgba(255,255,255,0.1)',
-        boxShadow: '0 4px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
-        backdropFilter: 'blur(12px)',
-      }}
-    >
-      {/* Row 1: title + status badges */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        <div className="font-display text-sm font-bold tracking-tight text-white sm:text-base">🏟️ Live room</div>
-        <span
-          className="rounded px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider sm:text-[9px]"
-          style={{ background: 'rgba(255,0,110,0.12)', color: '#f472b6' }}
-        >
-          {props.room?.oversPerMatch ?? 5}ov
-        </span>
-        <span
-          className="rounded px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider sm:text-[9px]"
-          style={{
-            background: `${statusColor[status] ?? '#fff'}18`,
-            color: statusColor[status] ?? '#fff',
-          }}
-        >
-          {status}
-        </span>
-        {mode === 'TOURNAMENT' && (
+    <header className="game-panel rounded-3xl border border-cyan-500/15 p-3 sm:p-4">
+      {/* Row 1: title + badges */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <div className="font-display text-base font-bold sm:text-xl">
+            <span className="text-white">🏟️</span>{' '}
+            <span className="bg-gradient-to-r from-rose-200 to-orange-200 bg-clip-text text-transparent">Cricket</span>
+          </div>
           <span
-            className="rounded px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider sm:text-[9px]"
-            style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}
+            className="rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest sm:rounded-lg sm:px-2 sm:text-[10px]"
+            style={{ background: 'rgba(255,0,110,0.12)', color: '#f472b6' }}
           >
-            Tournament
+            {props.room?.oversPerMatch ?? 5} ov
           </span>
-        )}
-      </div>
+          <span
+            className="rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest sm:rounded-lg sm:px-2 sm:text-[10px]"
+            style={{
+              background: `${statusColor[status] ?? '#fff'}18`,
+              color: statusColor[status] ?? '#fff',
+            }}
+          >
+            {status}
+          </span>
+          {mode === 'TOURNAMENT' ? (
+            <span
+              className="rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest sm:rounded-lg sm:px-2 sm:text-[10px]"
+              style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}
+            >
+              TOURNAMENT
+            </span>
+          ) : null}
+        </div>
 
-      {/* Row 2: code + team + controls */}
-      <div className="mt-1.5 flex flex-wrap items-center gap-1.5 sm:mt-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
         {/* Room code */}
         <div
-          className="rounded-lg border px-2 py-1 text-xs"
+          className="rounded-lg border px-2 py-1 text-xs sm:rounded-xl sm:px-3 sm:py-1.5"
           style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)' }}
         >
           <span className="text-white/40">Code: </span>
@@ -83,7 +78,7 @@ export function CricketRoomHeader(props: {
         {canPickTeam ? (
           <button
             onClick={props.onSelectTeam}
-            className="flex items-center gap-1 rounded-lg border px-2 py-1 text-xs font-bold transition-all hover:scale-105 active:scale-95"
+            className="tap-target flex min-h-[40px] items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold touch-manipulation transition-all hover:scale-105 sm:min-h-0 sm:rounded-xl sm:px-3 sm:py-1.5"
             style={
               props.myTeamId
                 ? { borderColor: `${color}50`, background: `${color}15`, color }
@@ -102,7 +97,7 @@ export function CricketRoomHeader(props: {
           </button>
         ) : props.myTeamId && !canPickTeam ? (
           <div
-            className="flex items-center gap-1 rounded-lg border px-2 py-1 text-xs font-bold"
+            className="flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs font-bold"
             style={{ borderColor: `${color}40`, background: `${color}12`, color }}
             title="Teams are locked once the game starts"
           >
@@ -112,44 +107,44 @@ export function CricketRoomHeader(props: {
             <span className="text-[8px] opacity-50">🔒</span>
           </div>
         ) : null}
-
-        {/* Host controls */}
-        {isHost && status === 'LOBBY' && (
-          <button
-            onClick={props.onStart}
-            className="rounded-lg px-2.5 py-1 text-xs font-bold text-black transition-all hover:scale-105 active:scale-95 sm:px-3"
-            style={{ background: 'linear-gradient(135deg, #fb7185 0%, #f43f5e 100%)', boxShadow: '0 0 12px rgba(244,63,94,0.35)' }}
-          >
-            {mode === 'TOURNAMENT' ? 'Start Tournament →' : 'Start →'}
-          </button>
-        )}
-        {isHost && status === 'RUNNING' && (
-          <button
-            onClick={() => props.onPause(true)}
-            className="rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all hover:scale-105 active:scale-95"
-            style={{ borderColor: 'rgba(249,115,22,0.4)', background: 'rgba(249,115,22,0.1)', color: '#fb923c' }}
-          >
-            ⏸ Pause
-          </button>
-        )}
-        {isHost && status === 'PAUSED' && (
-          <button
-            onClick={() => props.onPause(false)}
-            className="rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all hover:scale-105 active:scale-95"
-            style={{ borderColor: 'rgba(0,212,255,0.3)', background: 'rgba(0,212,255,0.08)', color: '#67e8f9' }}
-          >
-            ▶ Resume
-          </button>
-        )}
-        {!isHost && status === 'LOBBY' && (
-          <div
-            className="rounded-lg border px-2 py-1 text-xs text-white/35"
-            style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.03)' }}
-          >
-            Waiting for host…
-          </div>
-        )}
       </div>
+      </div>
+
+      {/* Row 2: host controls (match auction style) */}
+      {isHost ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2 sm:gap-2">
+          {status === 'LOBBY' ? (
+            <button
+              type="button"
+              onClick={props.onStart}
+              className="tap-target min-h-[44px] rounded-xl px-4 py-2 text-xs font-bold text-slate-950 touch-manipulation transition-all hover:scale-105 sm:min-h-0 sm:text-sm"
+              style={{ background: 'linear-gradient(135deg, #34d399 0%, #059669 100%)', boxShadow: '0 0 16px rgba(52,211,153,0.35)' }}
+            >
+              ▶ Start
+            </button>
+          ) : null}
+          {(status === 'RUNNING' || status === 'PAUSED') ? (
+            <>
+              <button
+                type="button"
+                onClick={() => props.onPause(true)}
+                className="tap-target min-h-[44px] rounded-xl border border-orange-400/45 bg-orange-500/12 px-4 py-2 text-xs font-semibold text-orange-200 touch-manipulation transition-all hover:scale-105 sm:min-h-0 sm:text-sm"
+              >
+                Pause
+              </button>
+              <button
+                type="button"
+                onClick={() => props.onPause(false)}
+                className="tap-target min-h-[44px] rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-4 py-2 text-xs font-semibold text-cyan-100 touch-manipulation transition-all hover:scale-105 sm:min-h-0 sm:text-sm"
+              >
+                Resume
+              </button>
+            </>
+          ) : null}
+
+          {/* Skip tournament hidden (per UX request) */}
+        </div>
+      ) : null}
     </header>
   )
 }

@@ -15,8 +15,11 @@ import { SoldOverlay, type SoldOverlayData } from '@/components/SoldOverlay'
 import { TEAM_META, teamColor, teamLogo } from '@/components/teamMeta'
 import { ChatPanel, type ChatMessage } from '@/components/ChatPanel'
 import { FlowAmbient } from '@/components/FlowAmbient'
+import { Crore, Lakh } from '@ipl-auction/rules'
+import { useRouter } from 'next/navigation'
 
 export default function RoomPage() {
+  const router = useRouter()
   const params = useParams<{ roomId: string }>()
   const search = useSearchParams()
   const roomId = params.roomId
@@ -26,7 +29,6 @@ export default function RoomPage() {
   const [room, setRoom] = useState<RoomSnapshot | null>(null)
   const [auction, setAuction] = useState<AuctionSnapshot | null>(null)
   const [events, setEvents] = useState<string[]>([])
-  const [bidAmount, setBidAmount] = useState<number>(0)
   const [error, setError] = useState<string | null>(null)
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [teamPickerOpen, setTeamPickerOpen] = useState(false)
@@ -36,6 +38,7 @@ export default function RoomPage() {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [showMobileLobby, setShowMobileLobby] = useState(false)
+  const [tournamentOvers, setTournamentOvers] = useState<5 | 10 | 15 | 20>(5)
   // Delay auto-open so socket is fully ready before team:select
   const [autoPickReady, setAutoPickReady] = useState(false)
   const autoPickTimer = useRef<number | null>(null)
@@ -47,9 +50,6 @@ export default function RoomPage() {
     socket.on('room:snapshot', setRoom)
     socket.on('auction:snapshot', (s) => {
       setAuction(s)
-      const base = s.lot?.basePriceLakh ?? 0
-      const cur = s.lot?.currentBidLakh ?? null
-      setBidAmount(cur == null ? base : cur + 25)
     })
     socket.on('auction:event', (e) => {
       setEvents((prev) => [e.message, ...prev].slice(0, 40))
@@ -113,6 +113,17 @@ export default function RoomPage() {
 
   const pickerOpen = teamPickerOpen || (autoPickReady && shouldPickTeam)
 
+  const lot = auction?.lot ?? null
+  const nextBidAmountLakh = (() => {
+    if (!lot) return null
+    if (room?.status === 'PAUSED') return null
+    if (lot.status !== 'RUNNING') return null
+    if (lot.currentBidLakh == null) return lot.basePriceLakh
+    const cur = lot.currentBidLakh
+    const inc = cur < Crore(1) ? Lakh(10) : cur < Crore(20) ? Lakh(25) : Lakh(50)
+    return cur + inc
+  })()
+
   return (
     <main className="page-shell landscape-main relative mx-auto max-w-6xl overflow-x-hidden px-2 py-2 sm:px-5 sm:py-5">
       <FlowAmbient variant="auction" />
@@ -147,6 +158,19 @@ export default function RoomPage() {
         onStart={() => socket.emit('room:start', { roomId }, () => {})}
         onPause={(paused) => socket.emit('room:pause', { roomId, paused }, () => {})}
         onSelectTeam={() => setTeamPickerOpen(true)}
+        tournamentOvers={tournamentOvers}
+        onTournamentOversChange={setTournamentOvers}
+        onStartTournament={(source) => {
+          setError(null)
+          socket.emit('auction:tournament:start', { roomId, overs: tournamentOvers, source }, (res) => {
+            if (!res.ok) return setError(res.error.message)
+            try {
+              const name = window.sessionStorage.getItem('ipl_displayName') ?? ''
+              if (name) window.sessionStorage.setItem('ipl_lastCricketRoomCode', res.code)
+            } catch { /* ignore */ }
+            router.push(`/cricket/room/${res.roomId}?code=${res.code}`)
+          })
+        }}
       />
 
       {/* Paused banner */}
@@ -193,12 +217,12 @@ export default function RoomPage() {
             auction={auction}
             nowMs={nowMs}
             isPaused={room?.status === 'PAUSED'}
-            bidAmount={bidAmount}
-            onInc25={() => setBidAmount((v) => v + 25)}
+            nextBidAmountLakh={nextBidAmountLakh}
             onBid={() => {
               if (!auction?.lot) return
+              if (nextBidAmountLakh == null) return
               setError(null)
-              socket.emit('bid:place', { roomId, lotId: auction.lot.lotId, amountLakh: bidAmount }, (res) => {
+              socket.emit('bid:step', { roomId, lotId: auction.lot.lotId }, (res) => {
                 if (!res.ok) setError(res.error.message)
               })
             }}

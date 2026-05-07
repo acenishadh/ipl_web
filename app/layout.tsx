@@ -24,6 +24,11 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: 'IPL Arcade — Live auction & cricket rooms',
   description: 'Host or join real-time IPL-style auctions and pick-your-number cricket. Room codes, no sign-up, friends on any device.',
+  icons: {
+    icon: [
+      { url: '/favicon.png', type: 'image/png' },
+    ],
+  },
 }
 
 export const viewport: Viewport = {

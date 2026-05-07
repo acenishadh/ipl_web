@@ -20,6 +20,7 @@ import { CricketTournamentVictory } from '@/components/cricket/CricketTournament
 import { teamColor, teamLogo } from '@/components/teamMeta'
 import { reactToCricketCommentary } from '@/lib/cricketMoments'
 import { FlowAmbient } from '@/components/FlowAmbient'
+import { ChatPanel, type ChatMessage } from '@/components/ChatPanel'
 
 type CricketSnapshot = any
 type BallPopup = { text: string; kind: string } | null
@@ -51,6 +52,10 @@ export default function CricketRoomPage() {
   const [activeTab, setActiveTab] = useState<TabId>('match')
   const [showMobileLobby, setShowMobileLobby] = useState(false)
   const [autoPickReady, setAutoPickReady] = useState(false)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [chatOpen, setChatOpen] = useState(false)
+  const [chatUnread, setChatUnread] = useState(0)
+  const chatOpenRef = useRef(false)
   const prevCommentaryLen = useRef(0)
   const prevMatchId = useRef<string | null>(null)
   const popupTimer = useRef<number | null>(null)
@@ -99,8 +104,42 @@ export default function CricketRoomPage() {
     if (!shouldPickTeam) setAutoPickReady(false)
   }, [shouldPickTeam, autoPickReady])
 
+  // Remember last chosen team per room, and auto-restore it on refresh/rejoin.
+  useEffect(() => {
+    if (!effectiveRoomId) return
+    if (myTeamId) {
+      try { window.sessionStorage.setItem(`ipl_cricket_team_${effectiveRoomId}`, myTeamId) } catch { /* ignore */ }
+      return
+    }
+    if (!shouldPickTeam) return
+    try {
+      const saved = window.sessionStorage.getItem(`ipl_cricket_team_${effectiveRoomId}`)
+      if (saved) {
+        setTeamPicking(true)
+        socket.emit('cricket:team:select', { roomId: effectiveRoomId, teamId: saved }, (res) => {
+          setTeamPicking(false)
+          if (!res.ok) {
+            // If saved team is taken/unavailable, fall back to picker.
+            setTeamPickerOpen(true)
+          }
+        })
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [effectiveRoomId, myTeamId, shouldPickTeam, socket])
+
+  useEffect(() => {
+    chatOpenRef.current = chatOpen
+    if (chatOpen) setChatUnread(0)
+  }, [chatOpen])
+
   useEffect(() => {
     socket.on('cricket:snapshot', setSnap)
+    socket.on('cricket:chat:message', (m: any) => {
+      setChatMessages((prev) => [...prev, m].slice(-250))
+      setChatUnread((u) => (chatOpenRef.current ? u : Math.min(99, u + 1)))
+    })
     return () => { socket.disconnect() }
   }, [socket])
 
@@ -165,6 +204,16 @@ export default function CricketRoomPage() {
   })()
 
   const pickerOpen = teamPickerOpen || ((pickTeam || autoPickReady) && shouldPickTeam)
+
+  // After the finals, redirect to a dedicated awards page.
+  useEffect(() => {
+    if (!isTournament) return
+    if (snap?.room?.status !== 'FINISHED') return
+    if (!league?.championTeamId) return
+    const effectiveCode = code ?? snap?.room?.code ?? null
+    const qp = effectiveCode ? `?code=${encodeURIComponent(effectiveCode)}` : ''
+    router.replace(`/cricket/champions/${effectiveRoomId}${qp}`)
+  }, [isTournament, snap?.room?.status, snap?.room?.code, league?.championTeamId, router, effectiveRoomId, code])
 
   return (
     <main className="page-shell relative mx-auto max-w-6xl overflow-x-hidden px-2 py-2 sm:px-4 sm:py-4">
@@ -276,7 +325,10 @@ export default function CricketRoomPage() {
 
       {/* ── TAB BAR ── (Tournament: 3 tabs; Quick Match: match + scorecard) */}
       {(isTournament || match) && (
-        <div className="mt-2 flex gap-1 rounded-xl border p-1" style={{ background: 'rgba(10,10,24,0.9)', borderColor: 'rgba(255,255,255,0.08)' }}>
+        <div
+          className="hide-scrollbar mt-2 flex gap-1 overflow-x-auto rounded-xl border p-1 sm:overflow-visible"
+          style={{ background: 'rgba(10,10,24,0.9)', borderColor: 'rgba(255,255,255,0.08)' }}
+        >
           {isTournament && (
             <TabButton
               id="dashboard"
@@ -324,10 +376,18 @@ export default function CricketRoomPage() {
               myTeamId={myTeamId}
               isTournament={isTournament}
               roomStatus={roomStatus}
+              squads={snap?.squads}
               commentary={snap?.commentary ?? []}
               oversPerMatch={snap?.room?.oversPerMatch ?? 5}
               onPhaseAck={(phase) => {
                 socket.emit('cricket:phase:ack', { roomId: effectiveRoomId, phase }, () => {})
+              }}
+              onSubmitXI={(xi, captain) => {
+                setError(null)
+                if (!myTeamId) return
+                socket.emit('cricket:xi:submit', { roomId: effectiveRoomId, teamId: myTeamId, xi, captain }, (res) => {
+                  if (!res.ok) setError(res.error.message)
+                })
               }}
               onTossCall={(call) => socket.emit('cricket:toss:call', { roomId: effectiveRoomId, call }, () => {})}
               onTossDecide={(dec) => socket.emit('cricket:toss:decide', { roomId: effectiveRoomId, decision: dec }, () => {})}
@@ -385,6 +445,73 @@ export default function CricketRoomPage() {
       {SHOW_CRICKET_DEV_UI && (
         <CricketDevFooter match={match} league={league} myTeamId={myTeamId} />
       )}
+
+      {/* Floating chat bubble + drawer */}
+      <button
+        type="button"
+        onClick={() => setChatOpen(true)}
+        className="tap-target glass-outline fixed z-[120] flex h-[52px] w-[52px] items-center justify-center rounded-2xl border text-xl font-black text-white shadow-2xl active:scale-[0.98] sm:h-14 sm:w-14"
+        style={{
+          right: 'max(0.9rem, env(safe-area-inset-right, 0px))',
+          bottom: 'max(0.9rem, env(safe-area-inset-bottom, 0px))',
+          background: 'linear-gradient(135deg, rgba(34,211,238,0.22) 0%, rgba(168,85,247,0.18) 55%, rgba(10,10,24,0.92) 100%)',
+          borderColor: 'rgba(34,211,238,0.25)',
+          backdropFilter: 'blur(10px)',
+          animation: 'floaty 2.4s ease-in-out infinite',
+        }}
+        aria-label="Open chat"
+      >
+        💬
+        {chatUnread > 0 ? (
+          <span
+            className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full border px-1 text-[10px] font-extrabold"
+            style={{ background: 'rgba(239,68,68,0.95)', borderColor: 'rgba(255,255,255,0.35)', color: '#fff' }}
+          >
+            {chatUnread >= 99 ? '99+' : chatUnread}
+          </span>
+        ) : null}
+      </button>
+
+      {chatOpen ? (
+        <div
+          className="fixed inset-0 z-[130] flex items-end justify-center bg-black/60 p-2 backdrop-blur-[2px] sm:items-stretch sm:justify-end sm:p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Chat"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setChatOpen(false)
+          }}
+        >
+          <div
+            className="w-full max-w-lg overflow-hidden rounded-3xl border sm:h-full sm:max-w-md sm:rounded-3xl"
+            style={{ background: 'rgba(10,10,24,0.98)', borderColor: 'rgba(255,255,255,0.1)' }}
+          >
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+              <div className="font-display text-sm font-bold text-white">💬 Chat</div>
+              <button
+                type="button"
+                onClick={() => setChatOpen(false)}
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-white/70"
+              >
+                Close
+              </button>
+            </div>
+            <div className="p-3">
+              <ChatPanel
+                room={snap?.room ?? null}
+                mySessionId={mySessionId}
+                messages={chatMessages}
+                onSend={(message) => {
+                  setError(null)
+                  socket.emit('cricket:chat:send', { roomId: effectiveRoomId, message }, (res) => {
+                    if (!res.ok) setError(res.error.message)
+                  })
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   )
 }
@@ -398,17 +525,17 @@ function TabButton({ id, active, onClick, label, sub, live }: {
   return (
     <button
       onClick={onClick}
-      className="flex flex-1 flex-col items-center gap-0.5 rounded-lg py-2 text-center transition-all sm:flex-row sm:justify-center sm:gap-2 sm:py-2.5"
+      className="flex min-w-[88px] flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-2 text-center transition-all sm:min-w-0 sm:flex-row sm:justify-center sm:gap-2 sm:py-2.5"
       style={
         active
           ? { background: 'rgba(255,255,255,0.08)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)' }
           : { background: 'transparent' }
       }
     >
-      <span className="text-sm font-bold" style={{ color: active ? '#fff' : 'rgba(255,255,255,0.4)' }}>{label}</span>
+      <span className="text-[13px] font-bold sm:text-sm" style={{ color: active ? '#fff' : 'rgba(255,255,255,0.4)' }}>{label}</span>
       {sub && (
         <span
-          className="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider sm:text-[10px]"
+          className="hidden rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider sm:inline-flex sm:text-[10px]"
           style={
             live
               ? { background: 'rgba(0,255,150,0.15)', color: '#00ff9d' }
@@ -543,12 +670,14 @@ function PointsTableCard({ league }: { league: any }) {
 }
 
 function MatchTab({
-  match, league, myTeamId, isTournament, roomStatus, commentary, oversPerMatch,
-  onPhaseAck, onTossCall, onTossDecide, onPick, onSelectBowler, onSelectBatter, onProceed
+  match, league, myTeamId, isTournament, roomStatus, squads, commentary, oversPerMatch,
+  onSubmitXI, onPhaseAck, onTossCall, onTossDecide, onPick, onSelectBowler, onSelectBatter, onProceed
 }: {
   match: any; league: any; myTeamId: string | null
   isTournament: boolean; roomStatus: string | null
+  squads?: Record<string, Array<{ name: string; role: string; overseas: boolean }>>
   commentary: any[]; oversPerMatch: number
+  onSubmitXI: (xi: string[], captain: string) => void
   onPhaseAck: (phase: 'toss' | 'inningsBreak') => void
   onTossCall: (c: 'HEADS' | 'TAILS') => void
   onTossDecide: (d: 'BAT' | 'BOWL') => void
@@ -557,10 +686,6 @@ function MatchTab({
   onSelectBatter: (batterIndex: number) => void
   onProceed: () => void
 }) {
-  if (roomStatus === 'FINISHED' && !match && isTournament && league?.championTeamId) {
-    return <CricketTournamentVictory league={league} />
-  }
-
   if (roomStatus === 'FINISHED' && !match) {
     return (
       <div
@@ -615,7 +740,15 @@ function MatchTab({
   }
 
   if (match.status === 'INNINGS1' && match.toss?.decision && !match.tossAcknowledged) {
-    return <CricketTossResultOverlay match={match} onContinue={() => onPhaseAck('toss')} />
+    return (
+      <CricketTossResultOverlay
+        match={match}
+        myTeamId={myTeamId}
+        squads={squads}
+        onSubmitXI={onSubmitXI}
+        onContinue={() => onPhaseAck('toss')}
+      />
+    )
   }
 
   if (match.status === 'INNINGS2' && !match.inningsBreakAcknowledged) {

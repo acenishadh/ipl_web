@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { RoomSnapshot } from '@ipl-auction/contracts'
 import { teamColor, teamLogo } from './teamMeta'
 
 export type ChatMessage = {
@@ -14,7 +13,7 @@ export type ChatMessage = {
 }
 
 export function ChatPanel(props: {
-  room: RoomSnapshot | null
+  room: { participants: Array<{ sessionId: string; displayName: string; teamId: string | null }> } | null
   mySessionId: string | null
   messages: ChatMessage[]
   onSend: (message: string) => void
@@ -40,13 +39,9 @@ export function ChatPanel(props: {
   }
 
   return (
-    <div className="game-panel flex flex-col rounded-3xl border border-fuchsia-500/10 p-4 sm:p-5">
-      <div className="flex items-center justify-between">
-        <h3 className="font-display text-base font-bold text-white">💬 Chat</h3>
-        <span className="text-xs text-white/30">{props.messages.length} messages</span>
-      </div>
+    <div className="game-panel flex flex-col rounded-3xl border border-fuchsia-500/10 p-3 sm:p-5">
 
-      <div ref={listRef} className="mt-3 max-h-[min(360px,50vh)] space-y-2 overflow-auto pr-1">
+      <div ref={listRef} className="mt-2 max-h-[min(52vh,420px)] space-y-2 overflow-auto pr-1">
         {props.messages.length === 0 ? (
           <p className="py-8 text-center text-sm text-white/40">No messages yet — say hi! 👋</p>
         ) : null}
@@ -116,7 +111,7 @@ export function ChatPanel(props: {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
           }}
           placeholder={me ? `Message as ${me.displayName}…` : 'Message…'}
-          className="input-play h-auto min-h-[48px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-white placeholder:text-white/30 focus:outline-none sm:min-h-[44px]"
+          className="input-play h-auto min-h-[46px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-white placeholder:text-white/30 focus:outline-none sm:min-h-[44px]"
           enterKeyHint="send"
           autoComplete="off"
           style={{
@@ -130,7 +125,7 @@ export function ChatPanel(props: {
         <button
           type="button"
           onClick={send}
-          className="tap-target min-h-[48px] shrink-0 touch-manipulation rounded-2xl px-5 text-sm font-bold text-slate-950 transition-all hover:scale-105 active:scale-95 sm:min-h-[44px]"
+          className="tap-target min-h-[46px] shrink-0 touch-manipulation rounded-2xl px-5 text-sm font-bold text-slate-950 transition-all hover:scale-105 active:scale-95 sm:min-h-[44px]"
           style={{ background: 'linear-gradient(135deg, #22d3ee 0%, #0891b2 100%)', boxShadow: '0 0 18px rgba(34,211,238,0.4)' }}
         >
           Send

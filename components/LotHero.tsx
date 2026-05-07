@@ -7,9 +7,8 @@ export function LotHero(props: {
   auction: AuctionSnapshot | null
   nowMs: number
   isPaused?: boolean
-  bidAmount: number
-  onInc25: () => void
   onBid: () => void
+  nextBidAmountLakh: number | null
   bidDisabled?: boolean
   bidDisabledReason?: string
 }) {
@@ -164,28 +163,18 @@ export function LotHero(props: {
             className="min-h-[48px] flex-1 rounded-2xl border px-3 py-2.5 text-sm sm:min-h-0"
             style={{ background: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)' }}
           >
-            <span className="text-white/45">Bid </span>
-            <span className="font-mono font-bold tabular-nums text-white">₹{props.bidAmount}L</span>
+            <span className="text-white/45">Next bid </span>
+            <span className="font-mono font-bold tabular-nums text-white">
+              {props.nextBidAmountLakh == null ? '—' : `₹${props.nextBidAmountLakh}L`}
+            </span>
           </div>
           <button
-            onClick={props.onInc25}
-            className="tap-target min-h-[48px] touch-manipulation rounded-2xl border px-4 py-2.5 text-sm font-bold transition-all hover:scale-105 active:scale-95 sm:min-h-0 sm:px-3 sm:py-2"
-            style={{
-              background: 'rgba(255,255,255,0.08)',
-              borderColor: 'rgba(255,255,255,0.18)',
-              color: 'rgba(255,255,255,0.9)',
-            }}
-            type="button"
-          >
-            +25L
-          </button>
-          <button
             onClick={props.onBid}
-            disabled={props.bidDisabled}
+            disabled={props.bidDisabled || props.nextBidAmountLakh == null}
             type="button"
             className="tap-target min-h-[48px] touch-manipulation rounded-2xl px-4 py-2.5 text-sm font-bold transition-all hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-0 sm:px-5"
             style={
-              props.bidDisabled
+              props.bidDisabled || props.nextBidAmountLakh == null
                 ? { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
                 : {
                     background: 'linear-gradient(135deg, #22d3ee 0%, #0891b2 100%)',

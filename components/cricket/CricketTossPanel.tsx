@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { teamColor, teamLogo } from '@/components/teamMeta'
 
 export function CricketTossPanel(props: {
@@ -19,6 +20,37 @@ export function CricketTossPanel(props: {
   const canCall = props.myTeamId && props.myTeamId === props.calledByTeamId && !props.call
   const canDecide = props.myTeamId && props.myTeamId === props.winnerTeamId && !!props.winnerTeamId && !props.decision
   const winColor = teamColor(props.winnerTeamId)
+  const [flipping, setFlipping] = useState(false)
+  const [flipFace, setFlipFace] = useState<'👑' | '🦅'>('👑')
+  const lastAnimKey = useRef<string>('')
+
+  const coinFace = useMemo(() => {
+    if (!props.result) return null
+    return props.result === 'HEADS' ? '👑' : '🦅'
+  }, [props.result])
+
+  useEffect(() => {
+    // Animate for everyone (winner/loser/spectator) whenever the toss progresses.
+    // Keyed off both call+result so late-joiners still see the flip once.
+    const key = `${props.call ?? ''}|${props.result ?? ''}`
+    if (!props.call) return
+    if (key === lastAnimKey.current) return
+    lastAnimKey.current = key
+
+    setFlipping(true)
+    const stopDelay = props.result ? 900 : 1200
+    const t = window.setTimeout(() => setFlipping(false), stopDelay)
+    return () => window.clearTimeout(t)
+  }, [props.call, props.result])
+
+  useEffect(() => {
+    if (!flipping) return
+    // Rapid alternation while the coin is flipping.
+    const id = window.setInterval(() => {
+      setFlipFace((p) => (p === '👑' ? '🦅' : '👑'))
+    }, 90)
+    return () => window.clearInterval(id)
+  }, [flipping])
 
   return (
     <div
@@ -49,6 +81,24 @@ export function CricketTossPanel(props: {
           >
             {props.call ? (props.winnerTeamId ? 'Toss complete!' : 'Toss in progress…') : 'Make your call'}
           </h2>
+        </div>
+
+        {/* Coin flip animation */}
+        <div className="mx-auto mt-6 flex items-center justify-center">
+          <div
+            className="relative flex h-20 w-20 items-center justify-center rounded-full border"
+            style={{
+              background: 'radial-gradient(circle at 30% 30%, rgba(255,214,10,0.35) 0%, rgba(255,214,10,0.12) 35%, rgba(0,0,0,0.2) 100%)',
+              borderColor: 'rgba(255,214,10,0.35)',
+              boxShadow: '0 0 30px rgba(255,214,10,0.15)',
+              transformStyle: 'preserve-3d',
+              animation: flipping ? 'coin-flip 1.2s ease-in-out' : 'none',
+            }}
+          >
+            <span className="text-3xl" style={{ filter: 'drop-shadow(0 6px 18px rgba(0,0,0,0.6))' }}>
+              {flipping ? flipFace : (coinFace ?? '🪙')}
+            </span>
+          </div>
         </div>
 
         {/* Teams */}
@@ -195,6 +245,16 @@ export function CricketTossPanel(props: {
           </button>
         </div>
       </div>
+
+      <style jsx global>{`
+        @keyframes coin-flip {
+          0% { transform: rotateY(0deg) translateY(0px); }
+          20% { transform: rotateY(180deg) translateY(-8px); }
+          50% { transform: rotateY(540deg) translateY(-14px); }
+          80% { transform: rotateY(900deg) translateY(-8px); }
+          100% { transform: rotateY(1080deg) translateY(0px); }
+        }
+      `}</style>
     </div>
   )
 }

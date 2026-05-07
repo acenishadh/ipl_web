@@ -17,11 +17,16 @@ function BatterSelectPanel(props: {
   const batters: any[] = inn.batters ?? []
   const btColor = teamColor(inn.battingTeamId)
 
-  const available = batters
-    .map((b: any, i: number) => ({ ...b, index: i }))
-    .filter((b) => !b.isOut && b.index !== inn.nonStrikerIndex)
-
   const nonStriker = batters[inn.nonStrikerIndex]
+  const strikerIdx = inn.strikerIndex ?? -1
+  const nonStrikerIdx = inn.nonStrikerIndex ?? -1
+
+  const rows = batters.map((b: any, i: number) => {
+    const atCrease = i === strikerIdx || i === nonStrikerIdx
+    const selectable = !b.isOut && !atCrease
+    const sr = b.balls > 0 ? ((b.runs / b.balls) * 100).toFixed(1) : '-'
+    return { ...b, index: i, atCrease, selectable, sr }
+  })
 
   return (
     <div
@@ -73,68 +78,45 @@ function BatterSelectPanel(props: {
           </div>
         </div>
 
-        <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
-          {available.map((b) => {
-            const hot = b.balls > 0 && b.runs / b.balls >= 1.5
+        <div className="mt-5 overflow-hidden rounded-2xl border border-white/10">
+          <div className="grid grid-cols-[1fr_44px_44px_52px] gap-2 bg-white/[0.03] px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-white/35 sm:grid-cols-[1fr_44px_44px_44px_44px_52px] sm:px-4">
+            <div>Batter</div>
+            <div className="text-center">R</div>
+            <div className="text-center">B</div>
+            <div className="text-right">SR</div>
+            <div className="hidden text-center sm:block">4s</div>
+            <div className="hidden text-center sm:block">6s</div>
+          </div>
+          {rows.map((b: any) => {
+            const grey = b.isOut
+            const disabled = !b.selectable
             return (
               <button
                 key={b.index}
                 type="button"
+                disabled={disabled}
                 onClick={() => props.onSelectBatter(b.index)}
-                className="group flex items-center gap-3 rounded-2xl border px-3 py-3 text-left transition-all active:scale-[0.99] sm:px-4"
+                className="grid w-full grid-cols-[1fr_44px_44px_52px] gap-2 border-t border-white/5 px-3 py-3 text-left text-sm disabled:opacity-50 sm:grid-cols-[1fr_44px_44px_44px_44px_52px] sm:px-4"
                 style={{
-                  background: `linear-gradient(90deg, ${btColor}14 0%, rgba(255,255,255,0.02) 100%)`,
-                  borderColor: `${btColor}35`,
-                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.05)`,
+                  background: b.atCrease ? `${btColor}10` : grey ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.1)',
                 }}
               >
-                <div
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-extrabold tracking-tight transition-transform group-hover:scale-105"
-                  style={{
-                    background: `linear-gradient(135deg, ${btColor}45, ${btColor}20)`,
-                    color: '#fff',
-                    boxShadow: `0 4px 14px ${btColor}35`,
-                  }}
-                >
-                  {playerInitials(b.name)}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-display font-semibold text-white">{b.name}</div>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-white/40">
-                    {b.balls === 0 ? (
-                      <span className="rounded-md bg-white/5 px-1.5 py-0.5 font-semibold text-amber-200/90">
-                        Fresh at the crease
-                      </span>
-                    ) : (
-                      <>
-                        <span className="font-mono tabular-nums text-white/55">
-                          {b.runs}<span className="text-white/35"> ({b.balls}b)</span>
-                        </span>
-                        {b.fours > 0 && (
-                          <span className="rounded bg-sky-500/15 px-1 py-px font-bold text-sky-300">▢ {b.fours}</span>
-                        )}
-                        {b.sixes > 0 && (
-                          <span className="rounded bg-violet-500/15 px-1 py-px font-bold text-violet-300">⬡ {b.sixes}</span>
-                        )}
-                        {hot && <span className="text-amber-300/90">· on fire</span>}
-                      </>
-                    )}
+                <div className="min-w-0">
+                  <div className="truncate font-semibold text-white">
+                    {b.name}
+                    {b.atCrease ? <span className="ml-2 text-[10px] font-bold" style={{ color: btColor }}>{b.index === strikerIdx ? '▶' : '◆'}</span> : null}
                   </div>
+                  {b.isOut ? <div className="mt-0.5 text-[10px] text-white/25">out</div> : null}
+                  {!b.isOut && !b.atCrease ? <div className="mt-0.5 text-[10px] text-white/25">tap to send in</div> : null}
                 </div>
-                <span
-                  className="shrink-0 text-lg text-white/20 transition group-hover:text-white/50"
-                  aria-hidden
-                >
-                  →
-                </span>
+                <div className="text-center font-display text-base font-extrabold tabular-nums text-white">{b.runs}</div>
+                <div className="text-center text-white/45">{b.balls}</div>
+                <div className="text-right font-mono text-white/45">{b.sr}</div>
+                <div className="hidden text-center text-white/45 sm:block">{b.fours}</div>
+                <div className="hidden text-center text-white/45 sm:block">{b.sixes}</div>
               </button>
             )
           })}
-          {available.length === 0 && (
-            <p className="col-span-2 rounded-xl border border-dashed border-white/10 bg-white/[0.02] py-6 text-center text-sm text-white/35">
-              No batsmen left in the hut — wrapping the innings…
-            </p>
-          )}
         </div>
       </div>
     </div>
@@ -163,8 +145,7 @@ function BowlerSelectPanel(props: {
     return { wk: rec.wickets, runs: rec.runs, balls: rec.balls }
   }
 
-  const eligible = pool.filter((n) => n !== prev && oversBowled(n) < props.maxOversPerBowler)
-  const maxedOut = pool.filter((n) => n !== prev && oversBowled(n) >= props.maxOversPerBowler)
+  const eligibleSet = new Set(pool.filter((n) => n !== prev && oversBowled(n) < props.maxOversPerBowler))
 
   return (
     <div
@@ -213,83 +194,43 @@ function BowlerSelectPanel(props: {
           </div>
         </div>
 
-        <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
-          {eligible.map((name: string) => {
-            const ov = oversBowled(name)
-            const pct = Math.min(100, (ov / props.maxOversPerBowler) * 100)
-            const st = spellStats(name)
-            const threat = st && st.wk >= 2
+        <div className="mt-5 overflow-hidden rounded-2xl border border-white/10">
+          <div className="grid grid-cols-[1fr_44px_52px] gap-2 bg-white/[0.03] px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-white/35 sm:grid-cols-[1fr_52px_44px_44px_60px] sm:px-4">
+            <div>Bowler</div>
+            <div className="text-center">W</div>
+            <div className="text-right">Ov</div>
+            <div className="hidden text-center sm:block">Ov</div>
+            <div className="hidden text-center sm:block">R</div>
+            <div className="hidden text-right sm:block">Econ</div>
+          </div>
+          {pool.map((name: string) => {
+            const st = spellStats(name) ?? { wk: 0, runs: 0, balls: 0 }
+            const ovTxt = `${Math.floor(st.balls / 6)}.${st.balls % 6}`
+            const econ = st.balls > 0 ? ((st.runs / st.balls) * 6).toFixed(2) : '-'
+            const disabled = !eligibleSet.has(name)
+            const why =
+              name === prev ? 'cannot bowl back-to-back' : oversBowled(name) >= props.maxOversPerBowler ? 'max overs reached' : null
             return (
               <button
                 key={name}
                 type="button"
+                disabled={disabled}
                 onClick={() => props.onSelectBowler(name)}
-                className="group flex items-center gap-3 rounded-2xl border px-3 py-3 text-left transition-all active:scale-[0.99] sm:px-4"
-                style={{
-                  background: `linear-gradient(90deg, ${bwColor}16 0%, rgba(255,255,255,0.02) 100%)`,
-                  borderColor: `${bwColor}38`,
-                }}
+                className="grid w-full grid-cols-[1fr_44px_52px] gap-2 border-t border-white/5 px-3 py-3 text-left text-sm disabled:opacity-50 sm:grid-cols-[1fr_52px_44px_44px_60px] sm:px-4"
+                style={{ background: !disabled ? `${bwColor}10` : 'rgba(0,0,0,0.15)' }}
               >
-                <div
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-extrabold uppercase text-white"
-                  style={{
-                    background: `linear-gradient(135deg, ${bwColor}50, ${bwColor}22)`,
-                    boxShadow: `0 4px 16px ${bwColor}30`,
-                  }}
-                >
-                  {playerInitials(name)}
+                <div className="min-w-0">
+                  <div className="truncate font-semibold text-white">{name}</div>
+                  {why ? <div className="mt-0.5 text-[10px] text-white/25">{why}</div> : <div className="mt-0.5 text-[10px] text-white/25">tap to bowl</div>}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate font-display font-semibold text-white">{name}</span>
-                    {threat && (
-                      <span className="shrink-0 rounded bg-red-500/20 px-1.5 py-px text-[9px] font-bold uppercase tracking-wide text-red-300">
-                        danger
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
-                    <div
-                      className="h-full rounded-full transition-all group-hover:brightness-110"
-                      style={{
-                        width: `${pct}%`,
-                        background: `linear-gradient(90deg, ${bwColor}, ${bwColor}99`,
-                        boxShadow: `0 0 12px ${bwColor}55`,
-                      }}
-                    />
-                  </div>
-                  <div className="mt-1 flex items-center justify-between text-[10px] text-white/40">
-                    <span>
-                      {ov}/{props.maxOversPerBowler} overs used
-                    </span>
-                    {st && st.balls > 0 && (
-                      <span className="font-mono text-white/50">
-                        {st.wk}-{st.runs} ({Math.floor(st.balls / 6)}.{st.balls % 6})
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <span className="shrink-0 text-lg text-white/20 transition group-hover:text-white/50" aria-hidden>
-                  →
-                </span>
+                <div className="text-center font-display text-base font-extrabold tabular-nums text-white">{st.wk}</div>
+                <div className="text-right font-mono text-white/50 sm:hidden">{ovTxt}</div>
+                <div className="hidden text-center text-white/50 sm:block">{ovTxt}</div>
+                <div className="hidden text-center text-white/50 sm:block">{st.runs}</div>
+                <div className="hidden text-right font-mono text-white/50 sm:block">{econ}</div>
               </button>
             )
           })}
-          {maxedOut.map((name: string) => (
-            <div
-              key={name}
-              className="flex items-center gap-3 rounded-2xl border border-dashed px-3 py-3 opacity-45 sm:px-4"
-              style={{ background: 'rgba(0,0,0,0.2)', borderColor: 'rgba(255,255,255,0.08)' }}
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/5 text-sm font-bold text-white/25">
-                {playerInitials(name)}
-              </div>
-              <div className="flex-1">
-                <div className="text-sm text-white/45">{name}</div>
-                <div className="text-[10px] text-white/25">Overs quota reached — pick someone else</div>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </div>
