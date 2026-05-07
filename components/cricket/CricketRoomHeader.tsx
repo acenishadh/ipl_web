@@ -62,13 +62,13 @@ export function CricketRoomHeader(props: {
           ) : null}
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-1 sm:gap-2">
         {/* Room code */}
         <div
-          className="rounded-lg border px-2 py-1 text-xs sm:rounded-xl sm:px-3 sm:py-1.5"
+          className="min-w-0 max-w-[min(100%,11rem)] rounded-lg border px-2 py-1 text-xs sm:max-w-none sm:rounded-xl sm:px-3 sm:py-1.5"
           style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)' }}
         >
-          <span className="text-white/40">Code: </span>
+          <span className="text-white/40">Code </span>
           <span className="font-mono font-bold tracking-widest text-white">
             {props.code ?? props.room?.code ?? '—'}
           </span>

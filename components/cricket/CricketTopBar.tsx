@@ -110,14 +110,16 @@ export function CricketTopBar(props: {
             <div className="font-display text-base font-bold sm:text-lg" style={{ color: hColor }}>
               {home ?? '—'}
             </div>
-            <div className="hidden truncate text-xs text-white/35 sm:block">{hMeta?.name ?? ''}</div>
+            <div className="line-clamp-1 truncate text-[9px] leading-tight text-white/40 sm:text-xs sm:text-white/35">
+              {hMeta?.name ?? '\u00a0'}
+            </div>
           </div>
         </div>
 
         {/* Score */}
         <div className="flex min-w-0 flex-1 flex-col items-center px-2 text-center sm:px-4">
           <div
-            className="w-full truncate font-display text-[11px] font-bold text-white sm:text-sm md:text-base"
+            className="w-full truncate px-0.5 font-display text-xs font-extrabold tabular-nums text-white sm:text-sm md:text-base"
             style={{ textShadow: '0 0 15px rgba(255,255,255,0.2)' }}
           >
             {props.scoreText}
@@ -136,7 +138,9 @@ export function CricketTopBar(props: {
             <div className="font-display text-base font-bold sm:text-lg" style={{ color: aColor }}>
               {away ?? '—'}
             </div>
-            <div className="hidden truncate text-xs text-white/35 sm:block">{aMeta?.name ?? ''}</div>
+            <div className="line-clamp-1 truncate text-[9px] leading-tight text-white/40 sm:text-xs sm:text-white/35">
+              {aMeta?.name ?? '\u00a0'}
+            </div>
           </div>
           {away ? (
             <div

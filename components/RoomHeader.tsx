@@ -3,6 +3,7 @@
 import type { RoomSnapshot } from '@ipl-auction/contracts'
 import { teamColor, teamLogo } from './teamMeta'
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 export function RoomHeader(props: {
   room: RoomSnapshot | null
@@ -180,18 +181,18 @@ function OversPickerDark(props: {
     const el = btnRef.current
     if (!el) return
     const r = el.getBoundingClientRect()
-    const width = Math.max(180, r.width)
-    const pad = 8
+    const width = Math.max(200, Math.min(r.width, 280))
+    const pad = 12
     let left = r.left
-    const maxLeft = Math.max(pad, window.innerWidth - width - pad)
-    left = Math.min(maxLeft, Math.max(pad, left))
-    if (r.right > window.innerWidth - pad * 2) {
-      left = Math.min(maxLeft, Math.max(pad, r.right - width))
-    }
-    const approxMenuHeight = 240
-    let top = r.bottom + 8
-    if (top + approxMenuHeight > window.innerHeight - pad) {
-      top = Math.max(pad, r.top - 8 - approxMenuHeight)
+    // Align menu left edge with button; clamp to viewport
+    if (left + width > window.innerWidth - pad) left = Math.max(pad, window.innerWidth - width - pad)
+    if (left < pad) left = pad
+    const optionCount = options.length
+    const rowH = 44
+    const menuHeight = Math.min(optionCount * rowH + 16, Math.floor(window.innerHeight * 0.45))
+    let top = r.bottom + 6
+    if (top + menuHeight > window.innerHeight - pad) {
+      top = Math.max(pad, r.top - 6 - menuHeight)
     }
     setPos({ left, top, width })
   }
@@ -225,43 +226,47 @@ function OversPickerDark(props: {
         <span className="truncate">{value} ov</span>
         <span className="text-white/40">▾</span>
       </button>
-      {open && !disabled ? (
-        <>
-          <button
-            type="button"
-            aria-label="Close overs menu"
-            className="fixed inset-0 z-[9998] cursor-default bg-transparent"
-            onClick={() => setOpen(false)}
-          />
-          <div
-            className="fixed z-[9999] overflow-hidden rounded-2xl border border-white/10"
-            style={{
-              left: pos?.left ?? 0,
-              top: pos?.top ?? 0,
-              width: pos?.width ?? 180,
-              background: 'rgba(10,10,24,0.98)',
-              boxShadow: '0 18px 60px rgba(0,0,0,0.6)',
-            }}
-          >
-            <div className="p-2">
-              {options.map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => {
-                    props.onChange(n)
-                    setOpen(false)
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-semibold text-white/80 hover:bg-white/[0.06]"
-                >
-                  <span>{n} overs</span>
-                  {n === value ? <span className="text-xs text-emerald-300/80">✓</span> : null}
-                </button>
-              ))}
-            </div>
-          </div>
-        </>
-      ) : null}
+      {open && !disabled && typeof document !== 'undefined'
+        ? createPortal(
+            <>
+              <button
+                type="button"
+                aria-label="Close overs menu"
+                className="fixed inset-0 z-[10000] cursor-default"
+                style={{ background: 'rgba(0,0,0,0.2)' }}
+                onClick={() => setOpen(false)}
+              />
+              <div
+                className="fixed z-[10001] max-h-[min(45vh,280px)] overflow-hidden overflow-y-auto rounded-2xl border border-white/10"
+                style={{
+                  left: pos?.left ?? 8,
+                  top: pos?.top ?? 8,
+                  width: pos?.width ?? 200,
+                  background: 'rgba(10,10,24,0.98)',
+                  boxShadow: '0 18px 60px rgba(0,0,0,0.6)',
+                }}
+              >
+                <div className="p-2">
+                  {options.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => {
+                        props.onChange(n)
+                        setOpen(false)
+                      }}
+                      className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-white/80 hover:bg-white/[0.06]"
+                    >
+                      <span>{n} overs</span>
+                      {n === value ? <span className="text-xs text-emerald-300/80">✓</span> : null}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>,
+            document.body
+          )
+        : null}
     </div>
   )
 }

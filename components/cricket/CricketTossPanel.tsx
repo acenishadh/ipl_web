@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { teamColor, teamLogo } from '@/components/teamMeta'
 
 export function CricketTossPanel(props: {
+  matchId: string
   myTeamId: string | null
   homeTeamId: string
   awayTeamId: string
@@ -22,26 +23,47 @@ export function CricketTossPanel(props: {
   const winColor = teamColor(props.winnerTeamId)
   const [flipping, setFlipping] = useState(false)
   const [flipFace, setFlipFace] = useState<'👑' | '🦅'>('👑')
-  const lastAnimKey = useRef<string>('')
+  const lastCallAnimKey = useRef<string>('')
+  const lastResultAnimKey = useRef<string>('')
 
   const coinFace = useMemo(() => {
     if (!props.result) return null
     return props.result === 'HEADS' ? '👑' : '🦅'
   }, [props.result])
 
+  // Phase 1: call placed — flip while waiting for server result (win or lose).
   useEffect(() => {
-    // Animate for everyone (winner/loser/spectator) whenever the toss progresses.
-    // Keyed off both call+result so late-joiners still see the flip once.
-    const key = `${props.call ?? ''}|${props.result ?? ''}`
+    const key = `${props.matchId}|call|${props.call ?? ''}`
     if (!props.call) return
-    if (key === lastAnimKey.current) return
-    lastAnimKey.current = key
-
+    if (key === lastCallAnimKey.current) return
+    lastCallAnimKey.current = key
     setFlipping(true)
-    const stopDelay = props.result ? 900 : 1200
+    const stopDelay = props.result ? 400 : 1200
     const t = window.setTimeout(() => setFlipping(false), stopDelay)
     return () => window.clearTimeout(t)
-  }, [props.call, props.result])
+  }, [props.call, props.result, props.matchId])
+
+  // Phase 2: result known — always play a full reveal animation (caller won or lost the flip).
+  useEffect(() => {
+    const key = `${props.matchId}|result|${props.call ?? ''}|${props.result ?? ''}`
+    if (!props.result || !props.call) return
+    if (key === lastResultAnimKey.current) return
+    lastResultAnimKey.current = key
+    setFlipping(true)
+    const t = window.setTimeout(() => setFlipping(false), 1500)
+    return () => window.clearTimeout(t)
+  }, [props.result, props.call, props.matchId])
+
+  const prevMatchIdRef = useRef<string>('')
+
+  // New match / rematch: reset so animations can run again.
+  useEffect(() => {
+    if (prevMatchIdRef.current !== props.matchId) {
+      prevMatchIdRef.current = props.matchId
+      lastCallAnimKey.current = ''
+      lastResultAnimKey.current = ''
+    }
+  }, [props.matchId])
 
   useEffect(() => {
     if (!flipping) return

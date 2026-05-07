@@ -1,8 +1,7 @@
 {
-  "/create/page": "app/create/page.js",
+  "/page": "app/page.js",
   "/room/[roomId]/page": "app/room/[roomId]/page.js",
   "/cricket/room/[roomId]/page": "app/cricket/room/[roomId]/page.js",
-  "/cricket/page": "app/cricket/page.js",
-  "/cricket/create/page": "app/cricket/create/page.js",
-  "/page": "app/page.js"
+  "/create/page": "app/create/page.js",
+  "/cricket/champions/[roomId]/page": "app/cricket/champions/[roomId]/page.js"
 }

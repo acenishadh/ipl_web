@@ -505,7 +505,7 @@ export function CricketMatchView(props: {
           </div>
         </div>
 
-        <div className="mt-3 max-h-60 space-y-1 overflow-y-auto pr-1 sm:max-h-80">
+        <div className="mt-3 max-h-[min(50dvh,17rem)] space-y-1 overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] sm:max-h-80">
           {commentary.length === 0 && (
             <div className="py-6 text-center text-sm text-white/25">No balls bowled yet.</div>
           )}
@@ -581,7 +581,7 @@ function PickGrid({
           </span>
         )}
       </div>
-      <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
+      <div className="grid grid-cols-4 gap-1.5 sm:gap-1.5">
         {actions.map((a) => {
           const isSelected = active && myPick === a.value
           const btnColor = colors[a.value] ?? '#fff'
@@ -591,7 +591,7 @@ function PickGrid({
               type="button"
               disabled={!active}
               onClick={() => onPick(a.value)}
-              className="group relative flex flex-col items-center gap-0.5 rounded-xl border py-2 text-center transition-all disabled:cursor-not-allowed active:scale-95"
+              className="touch-manipulation group relative flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-xl border py-2.5 text-center transition-all active:scale-95 disabled:cursor-not-allowed sm:min-h-0 sm:py-2"
               style={
                 !active
                   ? { background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.05)', opacity: 0.4 }

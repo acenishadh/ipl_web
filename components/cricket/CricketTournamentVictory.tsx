@@ -2,6 +2,26 @@
 
 import { teamColor, teamLogo, TEAM_META } from '@/components/teamMeta'
 
+/** Coerce server/snapshot honours fields so UI always gets plain objects + arrays. */
+export function normalizeLeagueForAwards(input: unknown): any | null {
+  if (!input || typeof input !== 'object') return null
+  const lg = input as Record<string, unknown>
+  const batting = lg.tournamentBatting
+  const bowling = lg.tournamentBowling
+  const battingRec =
+    batting && typeof batting === 'object' && !Array.isArray(batting) ? ({ ...batting } as Record<string, unknown>) : {}
+  const bowlingRec =
+    bowling && typeof bowling === 'object' && !Array.isArray(bowling) ? ({ ...bowling } as Record<string, unknown>) : {}
+  return {
+    ...lg,
+    championTeamId: lg.championTeamId ?? undefined,
+    runnerUpTeamId: lg.runnerUpTeamId ?? undefined,
+    tournamentBatting: battingRec,
+    tournamentBowling: bowlingRec,
+    playoffs: Array.isArray(lg.playoffs) ? lg.playoffs : [],
+  }
+}
+
 function topOneRuns(tb: Record<string, { teamId: string; player: string; runs: number }> | undefined) {
   if (!tb) return null
   const rows = Object.values(tb)
@@ -16,7 +36,7 @@ function topOneWickets(tb: Record<string, { teamId: string; player: string; wick
   return rows.sort((a, b) => b.wickets - a.wickets || a.player.localeCompare(b.player))[0] ?? null
 }
 
-function resolveRunnerUp(lg: any): string | null {
+export function resolveRunnerUp(lg: any): string | null {
   if (lg?.runnerUpTeamId) return lg.runnerUpTeamId as string
   const finals = (lg?.playoffs as { stage: string; loserTeamId: string | null }[] | undefined)?.find(
     (p) => p.stage === 'FINALS'
@@ -70,13 +90,168 @@ function TeamPodium(props: { teamId: string; title: string; rank: 1 | 2; blurb: 
   )
 }
 
-/** Full-screen style finals celebration: champion, runner-up, Orange & Purple cap toppers. */
+function RunnerPlaceholder() {
+  return (
+    <div
+      className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/[0.03] p-5 text-center sm:p-6"
+    >
+      <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">Runner-up</div>
+      <div className="mt-4 text-4xl opacity-40">🥈</div>
+      <p className="mt-4 text-sm text-white/40">Final placement not recorded yet.</p>
+    </div>
+  )
+}
+
+/** At-a-glance: champion, runner-up, Orange Cap, Purple Cap (e.g. top of champions page). */
+export function TournamentAwardsSummary(props: { league: any }) {
+  const lg = props.league
+  const champ = lg?.championTeamId as string | undefined
+  const runnerRaw = resolveRunnerUp(lg)
+  const runnerUp = runnerRaw && runnerRaw !== champ ? runnerRaw : null
+  const orange = topOneRuns(lg?.tournamentBatting)
+  const purple = topOneWickets(lg?.tournamentBowling)
+
+  const tileBase =
+    'relative overflow-hidden rounded-2xl border p-4 sm:p-5 flex flex-col min-h-[140px] sm:min-h-[152px]'
+
+  return (
+    <section className="mb-6" aria-label="Tournament awards">
+      <h2 className="mb-3 font-display text-sm font-bold tracking-wide text-white/85 sm:text-base">
+        Season results
+      </h2>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Winner */}
+        <div
+          className={tileBase}
+          style={{
+            background: champ
+              ? `linear-gradient(145deg, ${teamColor(champ)}22 0%, rgba(10,10,24,0.96) 55%)`
+              : 'rgba(10,10,24,0.96)',
+            borderColor: champ ? `${teamColor(champ)}55` : 'rgba(255,255,255,0.1)',
+          }}
+        >
+          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-200/80">🏆 Winner</div>
+          {champ ? (
+            <>
+              <div className="mt-3 flex items-center gap-3">
+                <div
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 sm:h-14 sm:w-14"
+                  style={{ borderColor: `${teamColor(champ)}66`, background: `${teamColor(champ)}14` }}
+                >
+                  {teamLogo(champ) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={teamLogo(champ) as string} alt="" className="h-9 w-9 object-contain sm:h-10 sm:w-10" />
+                  ) : (
+                    <span className="text-sm font-black text-white/60">{String(champ).slice(0, 2)}</span>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-display text-xl font-bold" style={{ color: teamColor(champ) }}>
+                    {champ}
+                  </div>
+                  <div className="truncate text-xs text-white/45">{TEAM_META.find((t) => t.id === champ)?.name}</div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <p className="mt-auto text-sm text-white/40">Champion will appear once the final is complete.</p>
+          )}
+        </div>
+
+        {/* Runner-up */}
+        <div
+          className={tileBase}
+          style={{
+            background: runnerUp
+              ? `linear-gradient(145deg, ${teamColor(runnerUp)}18 0%, rgba(10,10,24,0.96) 55%)`
+              : 'rgba(10,10,24,0.96)',
+            borderColor: runnerUp ? `${teamColor(runnerUp)}44` : 'rgba(255,255,255,0.1)',
+          }}
+        >
+          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">🥈 Runner-up</div>
+          {runnerUp ? (
+            <div className="mt-3 flex items-center gap-3">
+              <div
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 sm:h-14 sm:w-14"
+                style={{ borderColor: `${teamColor(runnerUp)}55`, background: `${teamColor(runnerUp)}10` }}
+              >
+                {teamLogo(runnerUp) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={teamLogo(runnerUp) as string} alt="" className="h-9 w-9 object-contain sm:h-10 sm:w-10" />
+                ) : (
+                  <span className="text-sm font-black text-white/60">{String(runnerUp).slice(0, 2)}</span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-display text-xl font-bold" style={{ color: teamColor(runnerUp) }}>
+                  {runnerUp}
+                </div>
+                <div className="truncate text-xs text-white/45">{TEAM_META.find((t) => t.id === runnerUp)?.name}</div>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-auto text-sm text-white/40">Runner-up will appear once the final is recorded.</p>
+          )}
+        </div>
+
+        {/* Orange Cap */}
+        <div
+          className={tileBase}
+          style={{
+            background: 'linear-gradient(145deg, rgba(249,115,22,0.16) 0%, rgba(10,10,20,0.96) 50%)',
+            borderColor: 'rgba(249,115,22,0.4)',
+          }}
+        >
+          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300/90">🧢 Orange Cap</div>
+          {orange ? (
+            <>
+              <div className="mt-2 font-display text-lg font-bold leading-tight text-white sm:text-xl">{orange.player}</div>
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/55">
+                <span style={{ color: teamColor(orange.teamId) }} className="font-bold">
+                  {orange.teamId}
+                </span>
+                <span className="font-mono font-bold text-orange-200">{orange.runs} runs</span>
+              </div>
+            </>
+          ) : (
+            <p className="mt-auto text-sm text-white/40">No batting totals yet.</p>
+          )}
+        </div>
+
+        {/* Purple Cap */}
+        <div
+          className={tileBase}
+          style={{
+            background: 'linear-gradient(145deg, rgba(168,85,247,0.16) 0%, rgba(10,10,20,0.96) 50%)',
+            borderColor: 'rgba(168,85,247,0.4)',
+          }}
+        >
+          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-purple-300/90">🎩 Purple Cap</div>
+          {purple ? (
+            <>
+              <div className="mt-2 font-display text-lg font-bold leading-tight text-white sm:text-xl">{purple.player}</div>
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/55">
+                <span style={{ color: teamColor(purple.teamId) }} className="font-bold">
+                  {purple.teamId}
+                </span>
+                <span className="font-mono font-bold text-purple-200">{purple.wickets} wickets</span>
+              </div>
+            </>
+          ) : (
+            <p className="mt-auto text-sm text-white/40">No bowling totals yet.</p>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/** Full-screen style finals celebration: champion & runner-up podium. Caps appear in `TournamentAwardsSummary`. */
 export function CricketTournamentVictory(props: { league: any }) {
   const lg = props.league
   const champ = lg?.championTeamId as string | undefined
-  const runnerUp = resolveRunnerUp(lg)
-  const orange = topOneRuns(lg?.tournamentBatting)
-  const purple = topOneWickets(lg?.tournamentBowling)
+  const runnerRaw = resolveRunnerUp(lg)
+  const runnerUp = runnerRaw && runnerRaw !== champ ? runnerRaw : null
 
   return (
     <div className="space-y-6">
@@ -98,7 +273,7 @@ export function CricketTournamentVictory(props: { league: any }) {
             What a season — from the group stage to the final, every match counted. Here’s how it ended.
           </p>
 
-          {champ && runnerUp && champ !== runnerUp ? (
+          {champ ? (
             <div className="mx-auto mt-10 flex max-w-3xl flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-center sm:gap-6">
               <TeamPodium
                 rank={1}
@@ -106,113 +281,19 @@ export function CricketTournamentVictory(props: { league: any }) {
                 title="Winner"
                 blurb="Your franchise lifts the trophy — champions of the tournament!"
               />
-              <TeamPodium
-                rank={2}
-                teamId={runnerUp}
-                title="Runner-up"
-                blurb="An outstanding run — seconds by the finest of margins."
-              />
-            </div>
-          ) : champ ? (
-            <div className="mx-auto mt-10 max-w-md">
-              <TeamPodium
-                rank={1}
-                teamId={champ}
-                title="Champions"
-                blurb="Congratulations — your franchise are tournament winners!"
-              />
+              {runnerUp ? (
+                <TeamPodium
+                  rank={2}
+                  teamId={runnerUp}
+                  title="Runner-up"
+                  blurb="An outstanding run — seconds by the finest of margins."
+                />
+              ) : (
+                <RunnerPlaceholder />
+              )}
             </div>
           ) : (
             <p className="mt-8 text-sm text-white/40">Champion data will appear here once results are final.</p>
-          )}
-        </div>
-      </div>
-
-      {/* Orange & Purple cap — leaderboard toppers */}
-      <div>
-        <h2 className="mb-3 font-display text-sm font-bold text-white/80 sm:text-base">Individual honours</h2>
-        <p className="mb-4 text-xs text-white/35">Orange Cap (most runs) and Purple Cap (most wickets) across the tournament.</p>
-        <div className="grid gap-4 md:grid-cols-2">
-          {orange ? (
-            <div
-              className="relative overflow-hidden rounded-2xl border p-5 sm:p-6"
-              style={{
-                background: 'linear-gradient(145deg, rgba(249,115,22,0.14) 0%, rgba(10,10,20,0.96) 50%)',
-                borderColor: 'rgba(249,115,22,0.45)',
-                boxShadow: '0 0 40px rgba(249,115,22,0.12)',
-              }}
-            >
-              <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-orange-500/20 blur-2xl" />
-              <div className="relative flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
-                <span className="text-5xl sm:mr-4">🧢</span>
-                <div className="mt-3 flex-1 sm:mt-0">
-                  <div className="text-[11px] font-bold uppercase tracking-[0.25em] text-orange-300">Orange Cap · Top run-scorer</div>
-                  <div className="mt-2 font-display text-2xl font-bold text-white">{orange.player}</div>
-                  <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-sm text-white/55 sm:justify-start">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {teamLogo(orange.teamId) ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={teamLogo(orange.teamId) as string} alt="" className="h-6 w-6 object-contain" />
-                    ) : (
-                      <div className="flex h-6 w-6 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-[10px] font-black text-white/60">
-                        {String(orange.teamId).slice(0, 2)}
-                      </div>
-                    )}
-                    <span style={{ color: teamColor(orange.teamId) }} className="font-bold">
-                      {orange.teamId}
-                    </span>
-                    <span className="font-mono text-lg font-bold text-orange-200">{orange.runs} runs</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div
-              className="rounded-2xl border border-dashed border-orange-500/25 bg-orange-500/5 p-6 text-center text-sm text-white/35"
-            >
-              No batting aggregate recorded for Orange Cap.
-            </div>
-          )}
-
-          {purple ? (
-            <div
-              className="relative overflow-hidden rounded-2xl border p-5 sm:p-6"
-              style={{
-                background: 'linear-gradient(145deg, rgba(168,85,247,0.14) 0%, rgba(10,10,20,0.96) 50%)',
-                borderColor: 'rgba(168,85,247,0.45)',
-                boxShadow: '0 0 40px rgba(168,85,247,0.12)',
-              }}
-            >
-              <div className="pointer-events-none absolute -left-6 -top-6 h-32 w-32 rounded-full bg-purple-500/20 blur-2xl" />
-              <div className="relative flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
-                <span className="text-5xl sm:mr-4">🎩</span>
-                <div className="mt-3 flex-1 sm:mt-0">
-                  <div className="text-[11px] font-bold uppercase tracking-[0.25em] text-purple-300">Purple Cap · Top wicket-taker</div>
-                  <div className="mt-2 font-display text-2xl font-bold text-white">{purple.player}</div>
-                  <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-sm text-white/55 sm:justify-start">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {teamLogo(purple.teamId) ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={teamLogo(purple.teamId) as string} alt="" className="h-6 w-6 object-contain" />
-                    ) : (
-                      <div className="flex h-6 w-6 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-[10px] font-black text-white/60">
-                        {String(purple.teamId).slice(0, 2)}
-                      </div>
-                    )}
-                    <span style={{ color: teamColor(purple.teamId) }} className="font-bold">
-                      {purple.teamId}
-                    </span>
-                    <span className="font-mono text-lg font-bold text-purple-200">{purple.wickets} wickets</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div
-              className="rounded-2xl border border-dashed border-purple-500/25 bg-purple-500/5 p-6 text-center text-sm text-white/35"
-            >
-              No bowling aggregate recorded for Purple Cap.
-            </div>
           )}
         </div>
       </div>
