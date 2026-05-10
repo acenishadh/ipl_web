@@ -84,43 +84,128 @@ export function CricketTopBar(props: {
     return ((runs / balls) * 100).toFixed(1)
   }
 
+  const battingColor = inn ? teamColor(inn.battingTeamId) : null
+
   return (
     <div
-      className="overflow-hidden rounded-3xl border"
+      className="overflow-hidden rounded-2xl border sm:rounded-3xl"
       style={{
-        background: 'rgba(10,10,24,0.95)',
-        borderColor: 'rgba(255,255,255,0.08)',
-        boxShadow: '0 6px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)',
+        background: 'rgba(10,10,24,0.97)',
+        borderColor: battingColor ? `${battingColor}30` : 'rgba(255,255,255,0.08)',
+        boxShadow: battingColor
+          ? `0 6px 32px rgba(0,0,0,0.5), 0 0 0 1px ${battingColor}18, inset 0 1px 0 rgba(255,255,255,0.06)`
+          : '0 6px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)',
       }}
     >
-      {/* Main score row */}
-      <div className="flex items-center justify-between gap-2 px-3 py-3 sm:px-6 sm:py-4">
+      {/* ── MOBILE layout (< sm): teams row + score row ── */}
+      <div className="sm:hidden">
+        {/* Teams row */}
+        <div className="flex items-center justify-between gap-1.5 px-3 py-2.5">
+          <div className="flex items-center gap-2">
+            {home ? (
+              <div
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border"
+                style={{ background: `${hColor}18`, borderColor: `${hColor}30` }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={teamLogo(home) ?? ''} alt="" className="h-7 w-7 object-contain" />
+              </div>
+            ) : null}
+            <div>
+              <div className="text-sm font-extrabold leading-tight" style={{ color: hColor }}>
+                {home ?? '—'}
+              </div>
+              {hMeta?.name && (
+                <div className="max-w-[72px] truncate text-[9px] leading-none text-white/35">
+                  {hMeta.name}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div
+            className="rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+            style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)' }}
+          >
+            VS
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="text-right">
+              <div className="text-sm font-extrabold leading-tight" style={{ color: aColor }}>
+                {away ?? '—'}
+              </div>
+              {aMeta?.name && (
+                <div className="max-w-[72px] truncate text-right text-[9px] leading-none text-white/35">
+                  {aMeta.name}
+                </div>
+              )}
+            </div>
+            {away ? (
+              <div
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border"
+                style={{ background: `${aColor}18`, borderColor: `${aColor}30` }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={teamLogo(away) ?? ''} alt="" className="h-7 w-7 object-contain" />
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Score row — full width, no truncation */}
+        <div
+          className="border-t px-3 py-2.5 text-center"
+          style={{
+            borderColor: 'rgba(255,255,255,0.06)',
+            background: battingColor ? `${battingColor}0c` : 'rgba(0,0,0,0.18)',
+          }}
+        >
+          <div
+            className="font-display text-xl font-extrabold tabular-nums text-white"
+            style={{ textShadow: `0 0 20px ${battingColor ?? 'rgba(255,255,255,0.3)'}` }}
+          >
+            {props.scoreText}
+          </div>
+          {props.subText && (
+            <div
+              className="mt-1 inline-block rounded-md px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+              style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)' }}
+            >
+              {props.subText}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── DESKTOP layout (sm+): single row ── */}
+      <div className="hidden sm:flex items-center justify-between gap-2 px-6 py-4">
         {/* Home team */}
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           {home ? (
             <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12"
-              style={{ background: `${hColor}18` }}
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border"
+              style={{ background: `${hColor}18`, borderColor: `${hColor}30` }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={teamLogo(home) ?? ''} alt="" className="h-8 w-8 object-contain sm:h-10 sm:w-10" />
+              <img src={teamLogo(home) ?? ''} alt="" className="h-10 w-10 object-contain" />
             </div>
           ) : null}
           <div className="min-w-0">
-            <div className="font-display text-base font-bold sm:text-lg" style={{ color: hColor }}>
+            <div className="font-display text-lg font-bold" style={{ color: hColor }}>
               {home ?? '—'}
             </div>
-            <div className="line-clamp-1 truncate text-[9px] leading-tight text-white/40 sm:text-xs sm:text-white/35">
+            <div className="line-clamp-1 truncate text-xs leading-tight text-white/35">
               {hMeta?.name ?? '\u00a0'}
             </div>
           </div>
         </div>
 
         {/* Score */}
-        <div className="flex min-w-0 flex-1 flex-col items-center px-2 text-center sm:px-4">
+        <div className="flex min-w-0 flex-1 flex-col items-center px-4 text-center">
           <div
-            className="w-full truncate px-0.5 font-display text-xs font-extrabold tabular-nums text-white sm:text-sm md:text-base"
-            style={{ textShadow: '0 0 15px rgba(255,255,255,0.2)' }}
+            className="w-full px-0.5 font-display text-base font-extrabold tabular-nums text-white md:text-lg"
+            style={{ textShadow: `0 0 20px ${battingColor ?? 'rgba(255,255,255,0.2)'}` }}
           >
             {props.scoreText}
           </div>
@@ -133,22 +218,22 @@ export function CricketTopBar(props: {
         </div>
 
         {/* Away team */}
-        <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
+        <div className="flex min-w-0 items-center justify-end gap-3">
           <div className="min-w-0 text-right">
-            <div className="font-display text-base font-bold sm:text-lg" style={{ color: aColor }}>
+            <div className="font-display text-lg font-bold" style={{ color: aColor }}>
               {away ?? '—'}
             </div>
-            <div className="line-clamp-1 truncate text-[9px] leading-tight text-white/40 sm:text-xs sm:text-white/35">
+            <div className="line-clamp-1 truncate text-xs leading-tight text-white/35">
               {aMeta?.name ?? '\u00a0'}
             </div>
           </div>
           {away ? (
             <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12"
-              style={{ background: `${aColor}18` }}
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border"
+              style={{ background: `${aColor}18`, borderColor: `${aColor}30` }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={teamLogo(away) ?? ''} alt="" className="h-8 w-8 object-contain sm:h-10 sm:w-10" />
+              <img src={teamLogo(away) ?? ''} alt="" className="h-10 w-10 object-contain" />
             </div>
           ) : null}
         </div>
@@ -157,25 +242,32 @@ export function CricketTopBar(props: {
       {/* Run rates + chase equation */}
       {inn && (props.matchStatus === 'INNINGS1' || props.matchStatus === 'INNINGS2') && (
         <div
-          className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t px-4 py-2 text-[10px] sm:px-6"
+          className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t px-3 py-2 sm:gap-x-5 sm:px-6"
           style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.15)' }}
         >
           {crr != null && (
-            <span className="font-mono text-white/70">
-              CRR <span className="font-bold text-white">{crr}</span>
+            <span className="flex items-center gap-1 text-[10px] sm:text-xs">
+              <span className="font-semibold text-white/45">CRR</span>
+              <span className="font-display font-bold tabular-nums text-white">{crr}</span>
             </span>
           )}
           {props.matchStatus === 'INNINGS2' && props.target != null && (
             <>
               {rrr != null && runsNeeded != null && ballsLeft > 0 && (
-                <span className="font-mono text-white/70">
-                  Req <span className="font-bold text-amber-300">{rrr}</span>
+                <span className="flex items-center gap-1 text-[10px] sm:text-xs">
+                  <span className="font-semibold text-white/45">RRR</span>
+                  <span className="font-display font-bold tabular-nums text-amber-300">{rrr}</span>
                 </span>
               )}
               {runsNeeded != null && (
-                <span className="font-mono text-white/55">
-                  Need <span className="font-bold text-white">{runsNeeded}</span> off{' '}
-                  <span className="font-bold text-white">{ballsLeft}</span> balls
+                <span className="text-[10px] font-semibold text-white/45 sm:text-xs">
+                  Need{' '}
+                  <span className="font-display font-extrabold tabular-nums" style={{ color: (runsNeeded <= 12) ? '#4ade80' : '#f87171' }}>
+                    {runsNeeded}
+                  </span>
+                  {' '}off{' '}
+                  <span className="font-display font-bold tabular-nums text-white">{ballsLeft}</span>
+                  {' '}balls
                 </span>
               )}
             </>
@@ -195,18 +287,19 @@ export function CricketTopBar(props: {
       {/* Current over (6+ slots when wides / no-balls) */}
       {overBalls.length > 0 && (
         <div
-          className="flex flex-wrap items-center justify-center gap-1 border-t px-2 py-2 sm:gap-1.5 sm:px-6"
+          className="flex flex-wrap items-center justify-center gap-1 border-t px-2 py-2.5 sm:gap-2 sm:px-6"
           style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}
         >
-          <span className="mr-1 w-full text-center text-[9px] font-bold uppercase tracking-widest text-white/35 sm:mr-2 sm:w-auto sm:text-left">This over</span>
+          <span className="mr-0.5 w-full text-center text-[9px] font-bold uppercase tracking-widest text-white/30 sm:mr-2 sm:w-auto sm:text-left">This over</span>
           {Array.from({ length: overSlotCount }).map((_, i) => {
             const v = overBalls[i]
             const filled = v !== undefined
+            const cs = filled ? overCellStyle(v) : emptySlotStyle
             return (
               <div
                 key={i}
-                className="flex h-7 min-w-7 max-w-[2.8rem] shrink-0 items-center justify-center rounded-lg border px-0.5 font-mono text-[9px] font-bold leading-tight sm:h-8 sm:min-w-8 sm:max-w-[3.2rem] sm:text-[10px]"
-                style={filled ? overCellStyle(v) : emptySlotStyle}
+                className="flex h-8 min-w-8 max-w-[3rem] shrink-0 items-center justify-center rounded-lg border px-1 font-mono text-[10px] font-extrabold leading-tight sm:h-9 sm:min-w-9 sm:text-xs"
+                style={cs}
               >
                 {filled ? overCellText(v) : '·'}
               </div>
@@ -218,18 +311,18 @@ export function CricketTopBar(props: {
       {/* Live batters + bowler strip */}
       {inn && (strikerLive || nonStriker) && (
         <div
-          className="flex items-center justify-between gap-2 border-t px-4 py-2 sm:px-6"
-          style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}
+          className="flex items-center justify-between gap-2 border-t px-3 py-2 sm:px-6"
+          style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.015)' }}
         >
           {/* Batting side */}
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <span className="shrink-0 text-[10px] text-white/25">🏏</span>
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <span className="shrink-0 text-[11px]">🏏</span>
             <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:gap-3">
               {/* Striker */}
               {strikerLive && (
                 <div className="flex items-center gap-1.5">
                   <span
-                    className="text-[10px] font-extrabold"
+                    className="text-[11px] font-extrabold"
                     style={{ color: teamColor(inn.battingTeamId) }}
                   >
                     {strikerLive.name.split(' ').pop()}*
@@ -245,11 +338,11 @@ export function CricketTopBar(props: {
               )}
               {/* Non-striker */}
               {nonStriker && nonStriker.name !== strikerLive?.name && (
-                <div className="flex items-center gap-1.5 opacity-60">
-                  <span className="text-[10px] font-semibold text-white/60">
+                <div className="flex items-center gap-1.5 opacity-55">
+                  <span className="text-[10px] font-semibold text-white/55">
                     {nonStriker.name.split(' ').pop()}
                   </span>
-                  <span className="font-display text-xs tabular-nums text-white/50">
+                  <span className="font-display text-xs tabular-nums text-white/45">
                     {nonStriker.runs}
                     <span className="text-[9px] text-white/30"> ({nonStriker.balls}b)</span>
                   </span>
@@ -261,7 +354,7 @@ export function CricketTopBar(props: {
           {/* Bowler side */}
           {bowler && (
             <div className="flex shrink-0 items-center gap-1.5">
-              <span className="text-[10px] text-white/25">⚾</span>
+              <span className="text-[11px]">⚾</span>
               <span
                 className="text-[10px] font-semibold"
                 style={{ color: teamColor(inn.bowlingTeamId) }}

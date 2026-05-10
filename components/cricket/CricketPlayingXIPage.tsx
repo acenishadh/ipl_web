@@ -98,24 +98,17 @@ export function CricketPlayingXIPage(props: {
     <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col bg-[#060612] pt-[max(0.5rem,env(safe-area-inset-top))]">
       {/* Top bar — mobile + desktop */}
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/[0.08] px-3 py-3 sm:px-6">
-        <button
-          type="button"
-          onClick={onExit}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-lg text-white/70 sm:h-9 sm:w-auto sm:px-3 sm:py-2 sm:text-xs sm:font-bold"
-          aria-label="Back"
-        >
-          <span className="sm:hidden">←</span>
-          <span className="hidden sm:inline">← Exit</span>
-        </button>
-        <div className="flex flex-1 items-center justify-center gap-2">
+        <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={teamLogo(match.homeTeamId) ?? ''} alt="" className="h-9 w-9 object-contain sm:h-10 sm:w-10" />
           <span className="text-[11px] font-bold text-white/35 sm:text-xs">vs</span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={teamLogo(match.awayTeamId) ?? ''} alt="" className="h-9 w-9 object-contain sm:h-10 sm:w-10" />
         </div>
-        <div className="max-w-[110px] text-right text-[10px] font-bold uppercase tracking-wider text-white/40 sm:max-w-none sm:text-xs">
-          {matchLabel ?? 'Match'}
+        <div className="flex items-center gap-3">
+          <div className="text-right text-[10px] font-bold uppercase tracking-wider text-white/40 sm:text-xs">
+            {matchLabel ?? 'Match'}
+          </div>
         </div>
       </div>
 
@@ -301,8 +294,9 @@ export function CricketPlayingXIPage(props: {
           paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
         }}
       >
-        <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
-          <div className="flex w-full flex-col gap-1.5 sm:max-w-md">
+        <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+          {/* Captain picker */}
+          <div className="flex w-full flex-col gap-1.5 sm:flex-1">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-white/45">Captain</span>
             <CaptainPickerDark
               value={captain}
@@ -311,18 +305,56 @@ export function CricketPlayingXIPage(props: {
               onChange={setCaptain}
             />
           </div>
-          <button
-            type="button"
-            disabled={alreadySubmitted || xi.length !== 11 || !captain || overseasCount > 4}
-            onClick={() => props.onSubmitXI?.(xi, captain)}
-            className="w-full shrink-0 rounded-2xl px-6 py-3.5 text-sm font-bold text-slate-950 disabled:opacity-40 sm:w-auto sm:min-w-[260px]"
-            style={{
-              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-              boxShadow: '0 0 24px rgba(34,197,94,0.25)',
-            }}
-          >
-            ✓ Confirm Playing XI
-          </button>
+
+          {/* Action buttons */}
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-end sm:gap-3">
+            {/* Confirm Playing XI */}
+            <button
+              type="button"
+              disabled={alreadySubmitted || xi.length !== 11 || !captain || overseasCount > 4}
+              onClick={() => props.onSubmitXI?.(xi, captain)}
+              className="w-full shrink-0 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-950 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:min-w-[180px]"
+              style={{
+                background: alreadySubmitted
+                  ? 'rgba(34,197,94,0.25)'
+                  : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                boxShadow: alreadySubmitted ? 'none' : '0 0 24px rgba(34,197,94,0.22)',
+                color: alreadySubmitted ? '#86efac' : '#0f172a',
+              }}
+            >
+              {alreadySubmitted ? '✓ XI Confirmed' : '✓ Confirm Playing XI'}
+            </button>
+
+            {/* Start Match — enabled only after XI is confirmed */}
+            <button
+              type="button"
+              disabled={!alreadySubmitted}
+              onClick={onExit}
+              className="relative w-full shrink-0 overflow-hidden rounded-2xl px-5 py-3.5 text-sm font-extrabold tracking-wide transition-all active:scale-[0.98] disabled:cursor-not-allowed sm:w-auto sm:min-w-[180px]"
+              style={
+                alreadySubmitted
+                  ? {
+                      background: 'linear-gradient(135deg, #00d4ff 0%, #0088cc 100%)',
+                      color: '#000d1a',
+                      boxShadow: '0 0 28px rgba(0,212,255,0.35)',
+                    }
+                  : {
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: 'rgba(255,255,255,0.25)',
+                    }
+              }
+            >
+              {alreadySubmitted ? 'Start Match →' : (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="opacity-50">Start Match</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">
+                    {!captain ? '· pick captain' : xi.length < 11 ? '· need 11' : '· confirm XI first'}
+                  </span>
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

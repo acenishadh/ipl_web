@@ -150,10 +150,16 @@ export function LotHero(props: {
         </div>
 
         {/* Progress bar */}
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-white/[0.06]">
           <div
-            className={progress > 0.15 ? 'shimmer-bar h-full rounded-full transition-[width]' : 'h-full rounded-full bg-red-500 transition-[width]'}
-            style={{ width: `${progress * 100}%` }}
+            className={progress > 0.15 ? 'shimmer-bar h-full rounded-full transition-[width]' : 'h-full rounded-full transition-[width] bg-red-500'}
+            style={{
+              width: `${progress * 100}%`,
+              // Pass team color into shimmer CSS vars (8-digit hex: last 2 chars = alpha)
+              '--shimmer-start': `${color}BF`,
+              '--shimmer-peak': color,
+              filter: progress > 0.15 ? `drop-shadow(0 0 4px ${color}80)` : undefined,
+            } as React.CSSProperties}
           />
         </div>
 

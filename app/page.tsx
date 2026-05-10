@@ -136,8 +136,156 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── HOW TO PLAY ── */}
+        <section className="mx-auto mt-14 w-full max-w-5xl sm:mt-16">
+          <div className="mb-8 text-center sm:mb-10">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-white/50">
+              How to Play
+            </div>
+            <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">
+              Two ways to play, endless fun.
+            </h2>
+            <p className="mx-auto mt-2 max-w-xl text-sm text-white/45">
+              Pick a mode and you&apos;re in — rooms last as long as your session.
+            </p>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            {/* ── AUCTION MODE ── */}
+            <div
+              className="overflow-hidden rounded-3xl border p-5 sm:p-6"
+              style={{ background: 'rgba(10,10,24,0.9)', borderColor: 'rgba(34,211,238,0.18)' }}
+            >
+              <div className="mb-5 flex items-center gap-3">
+                <div
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-2xl"
+                  style={{ background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.25)' }}
+                >
+                  🔨
+                </div>
+                <div>
+                  <div className="font-display text-base font-bold text-white sm:text-lg">Auction Mode</div>
+                  <div className="text-[11px] text-cyan-300/70">2–10 players · ~40 min</div>
+                </div>
+              </div>
+
+              <ol className="space-y-3.5">
+                {[
+                  { n: '1', icon: '🏠', title: 'Host creates a room', body: 'Click "Host auction", set overs, then share the 6-letter code with friends.' },
+                  { n: '2', icon: '🎟️', title: 'Everyone joins & claims a franchise', body: 'Each player pastes the code, picks a team — remaining slots are AI-managed.' },
+                  { n: '3', icon: '💰', title: 'Bid on players in real time', body: 'Each player goes under the hammer for 20 s. Tap BID to raise the price — highest bid wins them for your squad.' },
+                  { n: '4', icon: '📊', title: 'Manage your ₹120 Cr purse', body: 'You must keep ₹1 Cr per remaining slot. Overseas limit: 8 per squad of 25.' },
+                  { n: '5', icon: '🏆', title: 'Best squad wins!', body: 'The auction ends when all players are sold. Compare rosters and crown the best GM in the room.' },
+                ].map((step) => (
+                  <li key={step.n} className="flex items-start gap-3">
+                    <div
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-extrabold tabular-nums"
+                      style={{ background: 'rgba(34,211,238,0.15)', color: '#67e8f9', border: '1px solid rgba(34,211,238,0.25)' }}
+                    >
+                      {step.n}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 text-sm font-bold text-white">
+                        <span>{step.icon}</span>
+                        <span>{step.title}</span>
+                      </div>
+                      <p className="mt-0.5 text-xs leading-relaxed text-white/45">{step.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+
+              <div
+                className="mt-5 rounded-2xl p-3.5"
+                style={{ background: 'rgba(34,211,238,0.06)', border: '1px solid rgba(34,211,238,0.15)' }}
+              >
+                <div className="text-[10px] font-bold uppercase tracking-widest text-cyan-300/60">Pro tip</div>
+                <p className="mt-1 text-xs leading-relaxed text-white/50">
+                  Don&apos;t blow your budget early — late rounds have hidden gems at base price!
+                </p>
+              </div>
+            </div>
+
+            {/* ── CRICKET MODE ── */}
+            <div
+              className="overflow-hidden rounded-3xl border p-5 sm:p-6"
+              style={{ background: 'rgba(10,10,24,0.9)', borderColor: 'rgba(244,114,182,0.18)' }}
+            >
+              <div className="mb-5 flex items-center gap-3">
+                <div
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-2xl"
+                  style={{ background: 'rgba(244,114,182,0.12)', border: '1px solid rgba(244,114,182,0.25)' }}
+                >
+                  🏏
+                </div>
+                <div>
+                  <div className="font-display text-base font-bold text-white sm:text-lg">Cricket Mode</div>
+                  <div className="text-[11px] text-pink-300/70">PvP · PvBot · Tournament</div>
+                </div>
+              </div>
+
+              <ol className="space-y-3.5">
+                {[
+                  { n: '1', icon: '🏟️', title: 'Create or join a cricket room', body: 'Choose Quick Match (PvP or vs Bot) or a full IPL-style Tournament with points table and playoffs.' },
+                  { n: '2', icon: '🪙', title: 'Toss & pick your Playing XI', body: 'Coin flip decides who bats first. Each captain then picks 11 players and names a captain from their squad.' },
+                  { n: '3', icon: '🔢', title: 'The secret-number mechanic', body: 'Every ball, batter and bowler secretly pick a number 0–6 at the same time. If they match → WICKET. If not → batter scores that many runs.' },
+                  { n: '4', icon: '📋', title: 'Manage your innings', body: 'Pick who opens bowling each over. If a wicket falls, choose the next batter. All switches are yours to control.' },
+                  { n: '5', icon: '🏆', title: 'Chase or defend to win', body: 'In Tournament mode, play through the group stage, semi-finals, and a grand final. Track NRR on the Points Table.' },
+                ].map((step) => (
+                  <li key={step.n} className="flex items-start gap-3">
+                    <div
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-extrabold tabular-nums"
+                      style={{ background: 'rgba(244,114,182,0.15)', color: '#f9a8d4', border: '1px solid rgba(244,114,182,0.25)' }}
+                    >
+                      {step.n}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 text-sm font-bold text-white">
+                        <span>{step.icon}</span>
+                        <span>{step.title}</span>
+                      </div>
+                      <p className="mt-0.5 text-xs leading-relaxed text-white/45">{step.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+
+              {/* Scoring cheat-sheet */}
+              <div
+                className="mt-5 rounded-2xl p-3.5"
+                style={{ background: 'rgba(244,114,182,0.06)', border: '1px solid rgba(244,114,182,0.15)' }}
+              >
+                <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-pink-300/60">Scoring cheat-sheet</div>
+                <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-7">
+                  {[
+                    { v: '0', label: 'Dot', color: '#94a3b8' },
+                    { v: '1', label: 'Single', color: '#86efac' },
+                    { v: '2', label: 'Two', color: '#86efac' },
+                    { v: '3', label: 'Three', color: '#86efac' },
+                    { v: '4', label: 'Four', color: '#67e8f9' },
+                    { v: '6', label: 'Six', color: '#67e8f9' },
+                    { v: 'W', label: 'Match!', color: '#fca5a5' },
+                  ].map((s) => (
+                    <div
+                      key={s.v}
+                      className="flex flex-col items-center justify-center gap-0.5 rounded-xl border py-2"
+                      style={{ background: 'rgba(0,0,0,0.25)', borderColor: `${s.color}30` }}
+                    >
+                      <span className="font-display text-base font-extrabold tabular-nums" style={{ color: s.color }}>{s.v}</span>
+                      <span className="text-[9px] font-semibold uppercase tracking-wide text-white/35">{s.label}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 text-[10px] leading-relaxed text-white/35">
+                  <span className="font-bold text-pink-200/60">Match =</span> batter & bowler pick the same number → wicket.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <footer className="mt-auto border-t border-white/[0.06] pt-10 pb-6 text-center sm:pt-12">
-          <p className="site-footer-hint text-white/35">IPL Arcade · Built for watch parties & league nights</p>
+          <p className="site-footer-hint text-white/35">IPL Arcade · Built for watch parties &amp; league nights</p>
         </footer>
       </div>
     </main>

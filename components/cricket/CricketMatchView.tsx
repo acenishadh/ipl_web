@@ -270,12 +270,12 @@ function AiTurnPlaceholder(props: { label: string; teamId: string | null }) {
   )
 }
 
-const COMMENTARY_STYLES: Record<string, { bg: string; border: string; text: string; icon: string }> = {
-  WICKET:   { bg: 'rgba(239,68,68,0.1)',   border: 'rgba(239,68,68,0.3)',   text: '#fca5a5', icon: '💥' },
-  BOUNDARY: { bg: 'rgba(0,212,255,0.08)',  border: 'rgba(0,212,255,0.25)',  text: '#67e8f9', icon: '🚀' },
-  RESULT:   { bg: 'rgba(255,214,10,0.1)',  border: 'rgba(255,214,10,0.3)',  text: '#fbbf24', icon: '🏆' },
+const COMMENTARY_STYLES: Record<string, { bg: string; border: string; text: string; icon: string; scale?: boolean }> = {
+  WICKET:   { bg: 'rgba(239,68,68,0.13)',   border: 'rgba(239,68,68,0.35)',   text: '#fca5a5', icon: '💥', scale: true },
+  BOUNDARY: { bg: 'rgba(0,212,255,0.10)',   border: 'rgba(0,212,255,0.28)',   text: '#67e8f9', icon: '🚀', scale: true },
+  RESULT:   { bg: 'rgba(255,214,10,0.12)',  border: 'rgba(255,214,10,0.35)',  text: '#fbbf24', icon: '🏆' },
   INFO:     { bg: 'rgba(255,255,255,0.03)', border: 'rgba(255,255,255,0.07)', text: 'rgba(255,255,255,0.6)', icon: '📌' },
-  BALL:     { bg: 'rgba(255,255,255,0.03)', border: 'rgba(255,255,255,0.07)', text: 'rgba(255,255,255,0.6)', icon: '🔵' },
+  BALL:     { bg: 'rgba(255,255,255,0.025)', border: 'rgba(255,255,255,0.07)', text: 'rgba(255,255,255,0.55)', icon: '🔵' },
 }
 
 export function CricketMatchView(props: {
@@ -383,17 +383,17 @@ export function CricketMatchView(props: {
       >
         {/* Status row */}
         <div
-          className="flex flex-col gap-1.5 rounded-xl border px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:rounded-2xl sm:px-4"
+          className="flex flex-col gap-1.5 rounded-xl border px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:rounded-2xl sm:px-4"
           style={{
-            background: canPick ? `${isBatting ? bColor : oColor}10` : 'rgba(255,255,255,0.03)',
-            borderColor: canPick ? `${isBatting ? bColor : oColor}30` : 'rgba(255,255,255,0.07)',
+            background: canPick ? `${isBatting ? bColor : oColor}12` : 'rgba(255,255,255,0.03)',
+            borderColor: canPick ? `${isBatting ? bColor : oColor}35` : 'rgba(255,255,255,0.07)',
           }}
         >
-          <div className="flex items-center gap-2">
-            <span className="text-lg">{isBatting ? '🏏' : isBowling ? '⚾' : '👀'}</span>
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">{isBatting ? '🏏' : isBowling ? '⚾' : '👀'}</span>
             <span
-              className="font-display text-sm font-bold sm:text-base"
-              style={{ color: canPick ? (isBatting ? bColor : oColor) : 'rgba(255,255,255,0.4)' }}
+              className="font-display text-sm font-extrabold tracking-tight sm:text-base"
+              style={{ color: canPick ? (isBatting ? bColor : oColor) : 'rgba(255,255,255,0.35)' }}
             >
               {canPick ? (isBatting ? 'You are Batting' : 'You are Bowling') : 'Spectating'}
             </span>
@@ -479,7 +479,7 @@ export function CricketMatchView(props: {
       {/* ── COMMENTARY ── */}
       <div
         className="rounded-2xl border p-3 sm:rounded-3xl sm:p-5"
-        style={{ background: 'rgba(10,10,24,0.9)', borderColor: 'rgba(255,255,255,0.07)' }}
+        style={{ background: 'rgba(10,10,24,0.92)', borderColor: 'rgba(255,255,255,0.08)' }}
       >
         <div className="flex items-center justify-between gap-2">
           <h3 className="font-display text-sm font-bold text-white">📢 Commentary</h3>
@@ -509,19 +509,30 @@ export function CricketMatchView(props: {
           {commentary.length === 0 && (
             <div className="py-6 text-center text-sm text-white/25">No balls bowled yet.</div>
           )}
-          {[...commentary].slice(-80).reverse().map((c) => {
+          {[...commentary].slice(-80).reverse().map((c, idx) => {
             const s = COMMENTARY_STYLES[c.kind] ?? COMMENTARY_STYLES.BALL
+            const isHighlight = c.kind === 'WICKET' || c.kind === 'BOUNDARY'
+            const isLatest = idx === 0
             return (
               <div
                 key={c.ts + c.text}
-                className="flex items-center justify-between gap-2 rounded-xl border px-3 py-1.5"
-                style={{ background: s.bg, borderColor: s.border }}
+                className="flex items-center justify-between gap-2 rounded-xl border px-3 py-2"
+                style={{
+                  background: s.bg,
+                  borderColor: s.border,
+                  transform: isLatest && isHighlight ? 'scale(1.01)' : undefined,
+                }}
               >
                 <div className="flex min-w-0 items-center gap-2">
-                  <span className="shrink-0 text-sm">{s.icon}</span>
-                  <span className="truncate text-xs font-semibold sm:text-sm" style={{ color: s.text }}>{c.text}</span>
+                  <span className={`shrink-0 ${isHighlight ? 'text-base' : 'text-sm'}`}>{s.icon}</span>
+                  <span
+                    className={`truncate font-semibold leading-snug ${isHighlight ? 'text-sm sm:text-sm' : 'text-xs sm:text-xs'}`}
+                    style={{ color: s.text }}
+                  >
+                    {c.text}
+                  </span>
                 </div>
-                <span className="shrink-0 text-[10px] text-white/25">
+                <span className="shrink-0 text-[10px] text-white/20">
                   {new Date(c.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
@@ -548,16 +559,17 @@ function PickGrid({
 }) {
   return (
     <div
-      className="rounded-2xl border p-2.5 sm:p-3"
+      className="rounded-2xl border p-3 sm:p-3.5"
       style={{
-        borderColor: active ? `${activeColor}28` : 'rgba(255,255,255,0.06)',
-        background: active ? `linear-gradient(160deg, ${activeColor}10 0%, rgba(0,0,0,0.12) 100%)` : 'rgba(0,0,0,0.15)',
-        boxShadow: active ? `inset 0 1px 0 ${activeColor}22` : undefined,
+        borderColor: active ? `${activeColor}35` : 'rgba(255,255,255,0.06)',
+        background: active
+          ? `linear-gradient(160deg, ${activeColor}12 0%, rgba(0,0,0,0.1) 100%)`
+          : 'rgba(0,0,0,0.15)',
       }}
     >
-      <div className="mb-2 flex flex-wrap items-end justify-between gap-1">
+      <div className="mb-2.5 flex flex-wrap items-end justify-between gap-1">
         <div className="flex items-center gap-2">
-          <span className="text-base drop-shadow sm:text-lg">{icon}</span>
+          <span className="text-lg drop-shadow sm:text-xl">{icon}</span>
           <div>
             <div
               className="text-[10px] font-bold uppercase tracking-widest sm:text-xs"
@@ -570,18 +582,22 @@ function PickGrid({
         </div>
         {active && myPick !== null && myPick !== undefined && (
           <span
-            className="rounded-md px-2 py-0.5 text-[9px] font-bold sm:text-[10px]"
+            className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-extrabold sm:text-xs"
             style={{
-              background: 'rgba(0,255,150,0.14)',
+              background: 'rgba(0,255,150,0.15)',
               color: '#00ff9d',
-              boxShadow: '0 0 12px rgba(0,255,150,0.2)',
+              border: '1px solid rgba(0,255,150,0.3)',
             }}
           >
+            <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />
             Locked {myPick}
           </span>
         )}
+        {active && (myPick === null || myPick === undefined) && (
+          <span className="text-[10px] font-semibold text-white/30">Choose…</span>
+        )}
       </div>
-      <div className="grid grid-cols-4 gap-1.5 sm:gap-1.5">
+      <div className="grid grid-cols-4 gap-1.5">
         {actions.map((a) => {
           const isSelected = active && myPick === a.value
           const btnColor = colors[a.value] ?? '#fff'
@@ -591,43 +607,43 @@ function PickGrid({
               type="button"
               disabled={!active}
               onClick={() => onPick(a.value)}
-              className="touch-manipulation group relative flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-xl border py-2.5 text-center transition-all active:scale-95 disabled:cursor-not-allowed sm:min-h-0 sm:py-2"
+              className="touch-manipulation group relative flex min-h-[52px] flex-col items-center justify-center gap-0.5 rounded-xl border py-2.5 text-center transition-all duration-100 active:scale-95 disabled:cursor-not-allowed sm:min-h-[56px] sm:py-2.5"
               style={
                 !active
-                  ? { background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.05)', opacity: 0.4 }
+                  ? { background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.05)', opacity: 0.35 }
                   : isSelected
                   ? {
-                      background: `${btnColor}28`,
-                      borderColor: `${btnColor}80`,
-                      boxShadow: `0 0 16px ${btnColor}35, inset 0 0 20px ${btnColor}15`,
-                      transform: 'scale(1.06)',
+                      background: `${btnColor}2e`,
+                      borderColor: `${btnColor}90`,
+                      boxShadow: `0 0 20px ${btnColor}40, inset 0 0 20px ${btnColor}18`,
+                      transform: 'scale(1.07)',
                     }
                   : {
-                      background: `${btnColor}0c`,
-                      borderColor: `${btnColor}30`,
+                      background: `${btnColor}0e`,
+                      borderColor: `${btnColor}28`,
                     }
               }
             >
               <div
-                className="font-display text-lg font-extrabold tabular-nums leading-none sm:text-2xl"
-                style={{ color: active ? btnColor : 'rgba(255,255,255,0.3)' }}
+                className="font-display text-xl font-extrabold tabular-nums leading-none sm:text-2xl"
+                style={{ color: active ? btnColor : 'rgba(255,255,255,0.25)' }}
               >
                 {a.value}
               </div>
               <div
-                className="max-w-[100%] truncate px-0.5 text-[6px] font-semibold uppercase leading-tight sm:text-[8px]"
-                style={{ color: active ? `${btnColor}aa` : 'rgba(255,255,255,0.2)' }}
+                className="max-w-[100%] truncate px-0.5 text-[7px] font-semibold uppercase leading-tight sm:text-[8px]"
+                style={{ color: active ? `${btnColor}aa` : 'rgba(255,255,255,0.18)' }}
               >
                 {a.label}
               </div>
               {active && !isSelected && (
                 <div
                   className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition group-hover:opacity-100"
-                  style={{ boxShadow: `inset 0 0 0 1px ${btnColor}40` }}
+                  style={{ background: `${btnColor}0c`, boxShadow: `inset 0 0 0 1px ${btnColor}45` }}
                 />
               )}
               {isSelected && (
-                <div className="absolute right-1 top-1 h-1.5 w-1.5 animate-pulse rounded-full" style={{ background: btnColor }} />
+                <div className="absolute right-1 top-1 h-1.5 w-1.5 animate-ping rounded-full" style={{ background: btnColor }} />
               )}
             </button>
           )

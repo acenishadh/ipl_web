@@ -1,7 +1,9 @@
 {
-  "/page": "app/page.js",
-  "/room/[roomId]/page": "app/room/[roomId]/page.js",
+  "/join/page": "app/join/page.js",
+  "/cricket/page": "app/cricket/page.js",
+  "/cricket/create/page": "app/cricket/create/page.js",
   "/cricket/room/[roomId]/page": "app/cricket/room/[roomId]/page.js",
-  "/create/page": "app/create/page.js",
-  "/cricket/champions/[roomId]/page": "app/cricket/champions/[roomId]/page.js"
+  "/cricket/champions/[roomId]/page": "app/cricket/champions/[roomId]/page.js",
+  "/page": "app/page.js",
+  "/cricket/join/page": "app/cricket/join/page.js"
 }

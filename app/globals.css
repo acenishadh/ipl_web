@@ -436,11 +436,11 @@ textarea:focus-visible,
 .shimmer-bar {
   background: linear-gradient(
     90deg,
-    rgba(34, 211, 238, 0.75) 0%,
-    rgba(56, 189, 248, 1) 40%,
-    rgba(255, 255, 255, 0.95) 50%,
-    rgba(56, 189, 248, 1) 60%,
-    rgba(34, 211, 238, 0.75) 100%
+    var(--shimmer-start, rgba(34, 211, 238, 0.75)) 0%,
+    var(--shimmer-peak,  rgba(56, 189, 248, 1))    40%,
+    rgba(255, 255, 255, 0.9)                        50%,
+    var(--shimmer-peak,  rgba(56, 189, 248, 1))    60%,
+    var(--shimmer-start, rgba(34, 211, 238, 0.75)) 100%
   );
   background-size: 200% 100%;
   animation: progress-shimmer 2s linear infinite;
@@ -449,7 +449,7 @@ textarea:focus-visible,
 @media (prefers-reduced-motion: reduce) {
   .shimmer-bar {
     animation: none;
-    background: rgba(34, 211, 238, 0.85);
+    background: var(--shimmer-peak, rgba(34, 211, 238, 0.85));
   }
 }
 
