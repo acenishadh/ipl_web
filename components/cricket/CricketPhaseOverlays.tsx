@@ -17,7 +17,8 @@ export function CricketTossResultOverlay(props: {
     tossRevealUntilMs: number | null
     awaitingXI?: { homeSubmitted: boolean; awaySubmitted: boolean }
   }
-  onContinue: () => void
+  /** Undefined when viewer is a spectator/non-player — no phaseAck allowed for them. */
+  onContinue?: () => void
   matchLabel?: string
 }) {
   const { match, onContinue } = props
@@ -94,21 +95,34 @@ export function CricketTossResultOverlay(props: {
             </div>
           )}
           {showStart ? (
-            <button
-              type="button"
-              onClick={onContinue}
-              className="mt-6 w-full rounded-2xl py-4 font-display text-lg font-bold text-black transition-transform active:scale-[0.98]"
-              style={{
-                background: 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)',
-                boxShadow: '0 0 24px rgba(0,212,255,0.35)',
-              }}
-            >
-              Continue
-            </button>
+            onContinue ? (
+              <button
+                type="button"
+                onClick={onContinue}
+                className="mt-6 w-full rounded-2xl py-4 font-display text-lg font-bold text-black transition-transform active:scale-[0.98]"
+                style={{
+                  background: 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)',
+                  boxShadow: '0 0 24px rgba(0,212,255,0.35)',
+                }}
+              >
+                Continue
+              </button>
+            ) : (
+              <div
+                className="mt-6 rounded-2xl border px-4 py-3 text-sm font-semibold text-white/50"
+                style={{ borderColor: 'rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)' }}
+              >
+                ⏳ Players are selecting their Playing XI…
+              </div>
+            )
           ) : null}
 
           <p className="mt-3 text-xs text-white/35">
-            {!showStart ? 'Match starting…' : 'Pick your XI on the next screen if you are playing.'}
+            {!showStart
+              ? 'Match starting…'
+              : onContinue
+                ? 'Pick your XI on the next screen if you are playing.'
+                : 'Match will begin once both teams confirm their XI.'}
           </p>
         </div>
       </div>
@@ -122,7 +136,8 @@ export function CricketInningsBreakOverlay(props: {
     target: number | null
     inningsBreakUntilMs: number | null
   }
-  onContinue: () => void
+  /** Undefined when viewer is a spectator/non-player — no phaseAck allowed for them. */
+  onContinue?: () => void
 }) {
   const { match, onContinue } = props
   const [tick, setTick] = useState(0)
@@ -185,19 +200,34 @@ export function CricketInningsBreakOverlay(props: {
           </div>
         )}
         {showStart && (
-          <button
-            type="button"
-            onClick={onContinue}
-            className="mt-6 w-full rounded-2xl py-4 font-display text-lg font-bold text-black transition-transform active:scale-[0.98]"
-            style={{
-              background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
-              boxShadow: '0 0 24px rgba(168,85,247,0.35)',
-            }}
-          >
-            Start 2nd innings
-          </button>
+          onContinue ? (
+            <button
+              type="button"
+              onClick={onContinue}
+              className="mt-6 w-full rounded-2xl py-4 font-display text-lg font-bold text-black transition-transform active:scale-[0.98]"
+              style={{
+                background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
+                boxShadow: '0 0 24px rgba(168,85,247,0.35)',
+              }}
+            >
+              Start 2nd innings
+            </button>
+          ) : (
+            <div
+              className="mt-6 rounded-2xl border px-4 py-3 text-sm font-semibold text-white/50"
+              style={{ borderColor: 'rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)' }}
+            >
+              ⏳ Waiting for players to start 2nd innings…
+            </div>
+          )
         )}
-        <p className="mt-2 text-xs text-white/35">{showStart ? 'Chase begins when you continue.' : '2nd innings starting…'}</p>
+        <p className="mt-2 text-xs text-white/35">
+          {showStart
+            ? onContinue
+              ? 'Chase begins when you continue.'
+              : 'Match resumes when a player continues.'
+            : '2nd innings starting…'}
+        </p>
       </div>
     </div>
   )

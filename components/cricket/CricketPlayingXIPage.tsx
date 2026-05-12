@@ -43,6 +43,9 @@ export function CricketPlayingXIPage(props: {
     ((teamId === match.homeTeamId && match.awaitingXI?.homeSubmitted) ||
       (teamId === match.awayTeamId && match.awaitingXI?.awaySubmitted))
 
+  // Both teams have submitted their XI — the match is ready to start
+  const bothSubmitted = !!match.awaitingXI?.homeSubmitted && !!match.awaitingXI?.awaySubmitted
+
   const [xi, setXi] = useState<string[]>([])
   const [captain, setCaptain] = useState<string>('')
   const [pendingBenchPick, setPendingBenchPick] = useState<string>('')
@@ -325,35 +328,49 @@ export function CricketPlayingXIPage(props: {
               {alreadySubmitted ? '✓ XI Confirmed' : '✓ Confirm Playing XI'}
             </button>
 
-            {/* Start Match — enabled only after XI is confirmed */}
-            <button
-              type="button"
-              disabled={!alreadySubmitted}
-              onClick={onExit}
-              className="relative w-full shrink-0 overflow-hidden rounded-2xl px-5 py-3.5 text-sm font-extrabold tracking-wide transition-all active:scale-[0.98] disabled:cursor-not-allowed sm:w-auto sm:min-w-[180px]"
-              style={
-                alreadySubmitted
-                  ? {
-                      background: 'linear-gradient(135deg, #00d4ff 0%, #0088cc 100%)',
-                      color: '#000d1a',
-                      boxShadow: '0 0 28px rgba(0,212,255,0.35)',
-                    }
-                  : {
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: 'rgba(255,255,255,0.25)',
-                    }
-              }
-            >
-              {alreadySubmitted ? 'Start Match →' : (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="opacity-50">Start Match</span>
-                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">
-                    {!captain ? '· pick captain' : xi.length < 11 ? '· need 11' : '· confirm XI first'}
+            {/* Start Match — enabled only after both teams have confirmed their XI */}
+            {alreadySubmitted && !bothSubmitted ? (
+              <div
+                className="flex w-full shrink-0 items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-semibold sm:w-auto sm:min-w-[180px]"
+                style={{
+                  background: 'rgba(255,214,10,0.08)',
+                  border: '1px solid rgba(255,214,10,0.25)',
+                  color: 'rgba(255,214,10,0.8)',
+                }}
+              >
+                <span className="animate-pulse">⏳</span>
+                <span>Waiting for opponent XI…</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                disabled={!alreadySubmitted || !bothSubmitted}
+                onClick={onExit}
+                className="relative w-full shrink-0 overflow-hidden rounded-2xl px-5 py-3.5 text-sm font-extrabold tracking-wide transition-all active:scale-[0.98] disabled:cursor-not-allowed sm:w-auto sm:min-w-[180px]"
+                style={
+                  alreadySubmitted && bothSubmitted
+                    ? {
+                        background: 'linear-gradient(135deg, #00d4ff 0%, #0088cc 100%)',
+                        color: '#000d1a',
+                        boxShadow: '0 0 28px rgba(0,212,255,0.35)',
+                      }
+                    : {
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: 'rgba(255,255,255,0.25)',
+                      }
+                }
+              >
+                {alreadySubmitted && bothSubmitted ? 'Start Match →' : (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="opacity-50">Start Match</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">
+                      {!captain ? '· pick captain' : xi.length < 11 ? '· need 11' : '· confirm XI first'}
+                    </span>
                   </span>
-                </span>
-              )}
-            </button>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>

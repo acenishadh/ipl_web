@@ -196,11 +196,18 @@ export default function CricketRoomPage() {
 
   const showPlayingXiPage = useMemo(() => {
     const m = match
-    if (!m || m.status !== 'INNINGS1' || !m.toss?.decision || m.tossAcknowledged) return false
+    if (!m || m.status !== 'INNINGS1' || !m.toss?.decision) return false
     if (!m.awaitingXI || !myTeamId) return false
     if (myTeamId !== m.homeTeamId && myTeamId !== m.awayTeamId) return false
     const until = m.tossRevealUntilMs
     if (until != null && nowMs < until) return false
+    // Only hide XI page once the player's own team has submitted AND toss is acknowledged.
+    // This prevents a spectator/host clicking Continue from prematurely hiding the XI page
+    // for the player who still needs to select their squad.
+    const myTeamSubmitted =
+      (myTeamId === m.homeTeamId && !!m.awaitingXI.homeSubmitted) ||
+      (myTeamId === m.awayTeamId && !!m.awaitingXI.awaySubmitted)
+    if (myTeamSubmitted && m.tossAcknowledged) return false
     return true
   }, [match, myTeamId, nowMs])
 
@@ -895,17 +902,28 @@ function MatchTab({
   }
 
   if (match.status === 'INNINGS1' && match.toss?.decision && !match.tossAcknowledged) {
+    const isPlayerInMatch = myTeamId === match.homeTeamId || myTeamId === match.awayTeamId
     const matchLabel =
       league && typeof league.currentMatchIndex === 'number'
         ? `Match ${league.currentMatchIndex + 1}`
         : undefined
     return (
-      <CricketTossResultOverlay match={match} matchLabel={matchLabel} onContinue={() => onPhaseAck('toss')} />
+      <CricketTossResultOverlay
+        match={match}
+        matchLabel={matchLabel}
+        onContinue={isPlayerInMatch ? () => onPhaseAck('toss') : undefined}
+      />
     )
   }
 
   if (match.status === 'INNINGS2' && !match.inningsBreakAcknowledged) {
-    return <CricketInningsBreakOverlay match={match} onContinue={() => onPhaseAck('inningsBreak')} />
+    const isPlayerInMatch = myTeamId === match.homeTeamId || myTeamId === match.awayTeamId
+    return (
+      <CricketInningsBreakOverlay
+        match={match}
+        onContinue={isPlayerInMatch ? () => onPhaseAck('inningsBreak') : undefined}
+      />
+    )
   }
 
   if (match.status === 'COMPLETE') {
