@@ -168,19 +168,49 @@ export default function CricketRoomPage() {
   }, [socket, effectiveRoomId, router])
 
   useEffect(() => {
+    let cancelled = false
+    if (!urlRoomId) return
+
     try {
-      const name = window.sessionStorage.getItem('ipl_displayName') ?? ''
-      const lastCode = code ?? window.sessionStorage.getItem('ipl_lastCricketRoomCode') ?? ''
-      if (name && lastCode) {
-        socket.emit('cricket:room:join', { code: lastCode, displayName: name, asSpectator: false }, (res) => {
-          if (res.ok && res.roomId && res.roomId !== effectiveRoomId) {
+      const name = (window.sessionStorage.getItem('ipl_displayName') ?? '').trim()
+
+      const fromUrl = (code ?? '').trim()
+      let storedCode = ''
+      let storedRoomId = ''
+      try {
+        storedCode = (window.sessionStorage.getItem('ipl_lastCricketRoomCode') ?? '').trim()
+        storedRoomId = (window.sessionStorage.getItem('ipl_lastCricketRoomId') ?? '').trim()
+      } catch {
+        /* ignore */
+      }
+
+      const joinCode = fromUrl || (storedCode && storedRoomId === urlRoomId ? storedCode : '')
+
+      if (joinCode && name) {
+        socket.emit('cricket:room:join', { code: joinCode, displayName: name, asSpectator: false }, (res: any) => {
+          if (cancelled) return
+          if (!res?.ok) return
+          try {
+            window.sessionStorage.setItem('ipl_lastCricketRoomCode', joinCode)
+            window.sessionStorage.setItem('ipl_lastCricketRoomId', res.roomId)
+          } catch {
+            /* ignore */
+          }
+          if (typeof res.roomId === 'string' && res.roomId && res.roomId !== urlRoomId) {
             setEffectiveRoomId(res.roomId)
-            try { window.sessionStorage.setItem('ipl_lastCricketRoomId', res.roomId) } catch { /* ignore */ }
           }
         })
+      } else {
+        socket.emit('cricket:room:rejoin', { roomId: urlRoomId }, () => {})
       }
-    } catch { /* ignore */ }
-  }, [socket, code, effectiveRoomId])
+    } catch {
+      /* ignore */
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [socket, code, urlRoomId])
 
   useEffect(() => {
     const rid = snap?.room?.roomId

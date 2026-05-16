@@ -10,8 +10,9 @@ import { LobbySidebar } from '@/components/LobbySidebar'
 import { RoomTabs, type TabId } from '@/components/RoomTabs'
 import { ActivityFeed } from '@/components/ActivityFeed'
 import { LotHero } from '@/components/LotHero'
-import { usePlayersIndex } from '@/lib/usePlayersIndex'
+import { usePlayersIndex, type PlayerLite } from '@/lib/usePlayersIndex'
 import { SoldOverlay, type SoldOverlayData } from '@/components/SoldOverlay'
+import { AuctionPoolExplorer, type PoolTab } from '@/components/AuctionPoolExplorer'
 import { TEAM_META, teamColor, teamLogo } from '@/components/teamMeta'
 import { ChatPanel, type ChatMessage } from '@/components/ChatPanel'
 import { FlowAmbient } from '@/components/FlowAmbient'
@@ -36,8 +37,13 @@ export default function RoomPage() {
   const [tab, setTab] = useState<TabId>('activity')
   const [soldOverlay, setSoldOverlay] = useState<SoldOverlayData | null>(null)
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null)
+  const [poolModalOpen, setPoolModalOpen] = useState(false)
+  const [poolTab, setPoolTab] = useState<PoolTab>('pending')
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [showMobileLobby, setShowMobileLobby] = useState(false)
+  const [tournamentInvite, setTournamentInvite] = useState<{ cricketRoomId: string; code: string } | null>(
+    null
+  )
   const [tournamentOvers, setTournamentOvers] = useState<5 | 10 | 15 | 20>(5)
   // Delay auto-open so socket is fully ready before team:select
   const [autoPickReady, setAutoPickReady] = useState(false)
@@ -45,6 +51,37 @@ export default function RoomPage() {
 
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:5175'
   const playersIndex = usePlayersIndex(serverUrl)
+
+  const auctionPlayerCatalog = auction?.playerCatalog ?? []
+
+  const playerByIdMerged = useMemo(() => {
+    const m = new Map<string, PlayerLite>()
+    for (const p of playersIndex.players ?? []) m.set(p.id, p)
+    for (const p of auctionPlayerCatalog) {
+      m.set(p.id, {
+        id: p.id,
+        name: p.name,
+        role: p.role,
+        country: p.country,
+        basePriceLakh: p.basePriceLakh,
+        setId: p.setId
+      })
+    }
+    return m
+  }, [playersIndex.players, auctionPlayerCatalog])
+
+  const poolPlayersMerged = useMemo(() => [...playerByIdMerged.values()], [playerByIdMerged])
+
+  const playerByIdMergedRef = useRef(playerByIdMerged)
+  playerByIdMergedRef.current = playerByIdMerged
+
+  useEffect(() => {
+    const onInvite = (p: { cricketRoomId: string; code: string }) => setTournamentInvite(p)
+    socket.on('auction:tournament:invite', onInvite)
+    return () => {
+      socket.off('auction:tournament:invite', onInvite)
+    }
+  }, [socket])
 
   useEffect(() => {
     socket.on('room:snapshot', setRoom)
@@ -56,7 +93,7 @@ export default function RoomPage() {
       const parsed = (() => { try { return JSON.parse(e.message) } catch { return null } })()
       if (parsed?.type === 'SOLD' && typeof parsed.teamId === 'string' && typeof parsed.amountLakh === 'number') {
         const playerName = typeof parsed.playerId === 'string'
-          ? playersIndex.byId.get(parsed.playerId)?.name ?? parsed.playerId
+          ? playerByIdMergedRef.current.get(parsed.playerId)?.name ?? parsed.playerId
           : 'Player'
         setSoldOverlay({ teamId: parsed.teamId, amountLakh: parsed.amountLakh, playerName })
         window.setTimeout(() => setSoldOverlay(null), 2200)
@@ -124,6 +161,9 @@ export default function RoomPage() {
     return cur + inc
   })()
 
+  const iAmCurrentHighBidder =
+    !!me?.teamId && !!lot && lot.status === 'RUNNING' && lot.currentBidderTeamId === me.teamId
+
   return (
     <main className="page-shell landscape-main relative mx-auto max-w-6xl overflow-x-hidden px-2 py-2 sm:px-5 sm:py-5">
       <FlowAmbient variant="auction" />
@@ -165,13 +205,54 @@ export default function RoomPage() {
           socket.emit('auction:tournament:start', { roomId, overs: tournamentOvers, source }, (res) => {
             if (!res.ok) return setError(res.error.message)
             try {
-              const name = window.sessionStorage.getItem('ipl_displayName') ?? ''
-              if (name) window.sessionStorage.setItem('ipl_lastCricketRoomCode', res.code)
+              window.sessionStorage.setItem('ipl_lastCricketRoomCode', res.code)
+              window.sessionStorage.setItem('ipl_lastCricketRoomId', res.roomId)
             } catch { /* ignore */ }
-            router.push(`/cricket/room/${res.roomId}?code=${res.code}`)
+            router.push(`/cricket/room/${res.roomId}?code=${encodeURIComponent(res.code)}`)
+          })
+        }}
+        skipPoll={auction?.skipAuctionPoll}
+        onSkipAuctionPropose={
+          room?.hostSessionId === mySessionId && (room?.status === 'RUNNING' || room?.status === 'PAUSED')
+            ? () =>
+                socket.emit('auction:skip:propose', { roomId }, (res) => {
+                  if (!res.ok) setError(res.error.message)
+                })
+            : undefined
+        }
+        onSkipAuctionVote={(yes) => {
+          setError(null)
+          socket.emit('auction:skip:vote', { roomId, yes }, (res) => {
+            if (!res.ok) setError(res.error.message)
           })
         }}
       />
+
+      {tournamentInvite && room?.hostSessionId !== mySessionId ? (
+        <div
+          className="mt-2 rounded-2xl border border-rose-500/35 bg-rose-500/12 px-4 py-3 text-sm"
+          role="status"
+        >
+          <div className="font-bold text-rose-100">Tournament lobby is ready (host-only auto-join).</div>
+          <p className="mt-1 text-white/60">
+            You&apos;re still in the auction room. Open Cricket when ready — room code{' '}
+            <span className="font-mono font-bold tracking-wider text-white">{tournamentInvite.code}</span>.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="tap-target rounded-xl border border-rose-400/40 bg-rose-600/25 px-4 py-2 text-xs font-bold text-rose-50"
+              onClick={() =>
+                router.push(
+                  `/cricket/room/${tournamentInvite.cricketRoomId}?code=${encodeURIComponent(tournamentInvite.code)}&pickTeam=1`
+                )
+              }
+            >
+              Join tournament →
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {/* Paused banner */}
       {room?.status === 'PAUSED' && (
@@ -213,6 +294,15 @@ export default function RoomPage() {
 
       <div className="mt-3 grid items-start gap-3 sm:grid-cols-[1fr_256px] lg:grid-cols-[1fr_320px]">
         <section className="flex min-w-0 flex-col gap-3">
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="tap-target rounded-xl border border-cyan-500/35 bg-white/[0.04] px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-cyan-100 sm:text-xs"
+              onClick={() => setPoolModalOpen(true)}
+            >
+              📋 Pool
+            </button>
+          </div>
           <LotHero
             auction={auction}
             nowMs={nowMs}
@@ -226,13 +316,21 @@ export default function RoomPage() {
                 if (!res.ok) setError(res.error.message)
               })
             }}
-            bidDisabled={!me || me.role !== 'PLAYER' || !me.teamId || room?.status === 'PAUSED'}
+            bidDisabled={
+              !me || me.role !== 'PLAYER' || !me.teamId || room?.status === 'PAUSED' || iAmCurrentHighBidder
+            }
             bidDisabledReason={
-              room?.status === 'PAUSED' ? 'Auction is paused.'
-              : !me ? 'Joining…'
-              : me.role !== 'PLAYER' ? 'Spectators cannot bid.'
-              : !me.teamId ? 'Pick a team to bid.'
-              : undefined
+              room?.status === 'PAUSED'
+                ? 'Auction is paused.'
+                : !me
+                  ? 'Joining…'
+                  : me.role !== 'PLAYER'
+                    ? 'Spectators cannot bid.'
+                    : !me.teamId
+                      ? 'Pick a team to bid.'
+                      : iAmCurrentHighBidder
+                        ? 'You have the highest bid — wait for another franchise to bid.'
+                        : undefined
             }
           />
 
@@ -255,12 +353,12 @@ export default function RoomPage() {
             onChange={setTab}
             rightSlot={
               <div className="text-xs text-white/30">
-                {playersIndex.players ? `${playersIndex.players.length} players` : '…'}
+                {poolPlayersMerged.length ? `${poolPlayersMerged.length} players` : '…'}
               </div>
             }
           />
 
-          {tab === 'activity' ? <ActivityFeed events={events} playersById={playersIndex.byId} /> : null}
+          {tab === 'activity' ? <ActivityFeed events={events} playersById={playerByIdMerged} /> : null}
 
           {tab === 'chat' ? (
             <ChatPanel
@@ -350,7 +448,7 @@ export default function RoomPage() {
                           {auction?.teams
                             .find((t) => t.teamId === selectedTeamId)
                             ?.squad.map((s) => {
-                              const p = playersIndex.byId.get(s.playerId)
+                              const p = playerByIdMerged.get(s.playerId)
                               return (
                                 <div
                                   key={s.playerId}
@@ -421,6 +519,15 @@ export default function RoomPage() {
         </button>
         {showMobileLobby && <LobbySidebar room={room} mySessionId={mySessionId} auction={auction} />}
       </div>
+
+      <AuctionPoolExplorer
+        open={poolModalOpen}
+        onClose={() => setPoolModalOpen(false)}
+        auction={auction}
+        tab={poolTab}
+        onTab={setPoolTab}
+        players={poolPlayersMerged.length ? poolPlayersMerged : playersIndex.players}
+      />
     </main>
   )
 }

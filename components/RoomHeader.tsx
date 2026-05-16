@@ -1,6 +1,6 @@
 'use client'
 
-import type { RoomSnapshot } from '@ipl-auction/contracts'
+import type { RoomSnapshot, AuctionSnapshot } from '@ipl-auction/contracts'
 import { teamColor, teamLogo } from './teamMeta'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -13,6 +13,9 @@ export function RoomHeader(props: {
   onStart: () => void
   onPause: (paused: boolean) => void
   onSelectTeam?: () => void
+  skipPoll?: AuctionSnapshot['skipAuctionPoll']
+  onSkipAuctionPropose?: () => void
+  onSkipAuctionVote?: (yes: boolean) => void
   tournamentOvers?: 5 | 10 | 15 | 20
   onTournamentOversChange?: (overs: 5 | 10 | 15 | 20) => void
   onStartTournament?: (source: 'AUCTION_RESULTS' | 'SKIP_AUCTION') => void
@@ -21,6 +24,18 @@ export function RoomHeader(props: {
   const status = props.room?.status ?? '…'
   const mode = props.room?.mode ?? 'mock'
   const color = teamColor(props.myTeamId)
+
+  const canVoteSkip =
+    props.skipPoll?.active &&
+    !!(props.room && props.mySessionId && props.myTeamId) &&
+    props.room.participants.some(
+      (x) =>
+        x.sessionId === props.mySessionId &&
+        x.role === 'PLAYER' &&
+        !!x.teamId
+    )
+
+  const iVotedYes = !!(props.skipPoll?.yesSessionIds?.includes(props.mySessionId ?? ''))
 
   const statusColor: Record<string, string> = {
     LOBBY: '#ffd60a',
@@ -130,6 +145,16 @@ export function RoomHeader(props: {
             Resume
           </button>
 
+          {(status === 'RUNNING' || status === 'PAUSED') && props.onSkipAuctionPropose ? (
+            <button
+              type="button"
+              onClick={props.onSkipAuctionPropose}
+              className="tap-target min-h-[44px] rounded-xl border border-violet-400/45 bg-violet-600/14 px-4 py-2 text-xs font-bold text-violet-100 touch-manipulation transition-all hover:scale-105 sm:min-h-0 sm:text-sm"
+            >
+              ⚡ Vote: skip auction
+            </button>
+          ) : null}
+
           {props.onStartTournament ? (
             <div className="flex flex-wrap items-center gap-2">
               <OversPickerDark
@@ -160,6 +185,41 @@ export function RoomHeader(props: {
               ) : null}
             </div>
           ) : null}
+        </div>
+      ) : null}
+
+      {props.skipPoll?.active ? (
+        <div
+          className="mt-3 rounded-2xl border px-3 py-2.5 text-xs sm:text-sm"
+          style={{ borderColor: 'rgba(139,92,246,0.45)', background: 'rgba(88,28,135,0.15)' }}
+        >
+          <div className="font-bold text-violet-100">Community skip auction vote</div>
+          <div className="mt-1 text-white/55">
+            Yes votes: <span className="font-mono font-bold text-white">{props.skipPoll.yesVotes}</span> /{' '}
+            <span className="font-mono">{props.skipPoll.eligibleVoters}</span> franchises — need strictly more than{' '}
+            {(props.skipPoll.eligibleVoters / 2).toFixed(1)} YES to skip.
+          </div>
+          {canVoteSkip && props.onSkipAuctionVote ? (
+            <div className="mt-2 flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={iVotedYes}
+                onClick={() => props.onSkipAuctionVote?.(true)}
+                className="tap-target rounded-xl border border-emerald-400/35 bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-100 disabled:opacity-40"
+              >
+                {iVotedYes ? '✓ You voted YES' : 'Vote YES'}
+              </button>
+              <button
+                type="button"
+                onClick={() => props.onSkipAuctionVote?.(false)}
+                className="tap-target rounded-xl border border-white/15 bg-white/[0.04] px-4 py-2 text-xs font-bold text-white/60"
+              >
+                Vote NO
+              </button>
+            </div>
+          ) : (
+            <div className="mt-2 text-[11px] text-white/35">Spectators cannot vote — pick a franchise in lobby.</div>
+          )}
         </div>
       ) : null}
     </header>
